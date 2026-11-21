@@ -1,0 +1,48 @@
+# Dependency directories
+node_modules/
+*/node_modules/
+venv/
+*/venv/
+.venv/
+*/.venv/
+
+# Environment files
+.env
+.env.*
+*/.env
+*/.env.*
+!.env.example
+!*/.env.example
+
+# Build and distribution
+dist/
+*/dist/
+build/
+*/build/
+
+# Python cache and testing
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*/.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite3
+footwear_dev.db
+
+# Uploads and temporary media
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.log

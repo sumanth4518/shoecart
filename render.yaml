@@ -1,0 +1,86 @@
+services:
+  # ========================================================
+  # 1. FastAPI Backend Web Service
+  # ========================================================
+  - type: web
+    name: aura-kicks-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 10080
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_ENDPOINT_URL_S3
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: NEON_STORAGE_BUCKET
+        value: shoecart
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: aura-kicks-frontend
+          property: host
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+  # ========================================================
+  # 2. Customer Storefront Frontend (React / Vite)
+  # ========================================================
+  - type: web
+    name: aura-kicks-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    region: oregon
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: aura-kicks-backend
+          property: host
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+
+  # ========================================================
+  # 3. Admin Console Frontend (React / Vite)
+  # ========================================================
+  - type: web
+    name: aura-kicks-admin
+    runtime: docker
+    dockerfilePath: ./admin-frontend/Dockerfile
+    dockerContext: ./admin-frontend
+    plan: free
+    region: oregon
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: aura-kicks-backend
+          property: host

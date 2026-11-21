@@ -1,0 +1,20 @@
+{
+  "name": "aura-kicks-footwear-ecommerce",
+  "version": "2.0.0",
+  "description": "Production-grade Premium Footwear E-Commerce Platform",
+  "scripts": {
+    "start": "cd backend && .\\venv\\Scripts\\uvicorn app.main:app --host 0.0.0.0 --port 5000",
+    "backend": "cd backend && .\\venv\\Scripts\\uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload",
+    "backend:node": "node backend/src/server.js",
+    "frontend": "cd frontend && npm run dev",
+    "admin": "cd admin-frontend && npm run dev",
+    "dev": "concurrently -n \"BACKEND,CUSTOMER,ADMIN\" -c \"blue,green,magenta\" \"npm run backend\" \"npm run frontend\" \"npm run admin\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:admin": "cd admin-frontend && npm run build",
+    "build": "npm run build:frontend && npm run build:admin",
+    "test:backend": "cd backend && .\\venv\\Scripts\\python.exe -m pytest tests\\test_api.py -v"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

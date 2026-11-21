@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{subject}}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #050505; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #0d0d0d; border: 1px solid #222222; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+          
+          <!-- Top Accent Bar -->
+          <tr>
+            <td style="height: 4px; background: linear-gradient(90deg, #FF6B1A 0%, #FF8A3D 100%);"></td>
+          </tr>
+
+          <!-- Header / Brand -->
+          <tr>
+            <td style="padding: 35px 35px 20px 35px; text-align: center;">
+              <div style="display: inline-block; width: 44px; height: 44px; background-color: #FF6B1A; border-radius: 12px; line-height: 44px; text-align: center; margin-bottom: 12px;">
+                <span style="font-size: 24px; color: #000000; font-weight: 900;">&#9832;</span>
+              </div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; text-transform: uppercase;">
+                AURA<span style="color: #FF6B1A;">KICKS</span>
+              </h1>
+              <p style="margin: 6px 0 0 0; font-size: 13px; color: #888888; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
+                Exclusive Footwear &amp; Member Drops
+              </p>
+            </td>
+          </tr>
+
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 10px 35px 25px 35px;">
+              <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #ffffff; text-align: center;">
+                {{headline}}
+              </h2>
+              <p style="margin: 0 0 25px 0; font-size: 14px; line-height: 1.6; color: #a3a3a3; text-align: center;">
+                {{message}}
+              </p>
+
+              <!-- 6-Digit OTP Box -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <div style="background-color: #141414; border: 2px solid #FF6B1A; border-radius: 12px; padding: 18px 24px; text-align: center; display: inline-block; min-width: 220px; box-shadow: 0 0 25px rgba(255, 107, 26, 0.15);">
+                      <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; letter-spacing: 12px; color: #FF6B1A; display: block; margin-left: 12px;">
+                        {{otp_code}}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Expiry Alert -->
+              <p style="margin: 25px 0 0 0; font-size: 13px; color: #737373; text-align: center; line-height: 1.5;">
+                This single-use code is valid for <strong>{{expiry_minutes}} minutes</strong>.<br>
+                For your security, never share this code with anyone.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer / Security Disclaimer -->
+          <tr>
+            <td style="padding: 20px 35px 30px 35px; border-top: 1px solid #1a1a1a; text-align: center; background-color: #080808;">
+              <p style="margin: 0 0 8px 0; font-size: 11px; color: #555555; text-transform: uppercase; letter-spacing: 0.05em;">
+                Automated Security Notification &bull; Do Not Reply
+              </p>
+              <p style="margin: 0; font-size: 11px; color: #444444;">
+                &copy; 2026 AURA KICKS Inc. All rights reserved. Secure Member Access.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
