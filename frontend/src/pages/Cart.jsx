@@ -119,6 +119,10 @@ const Cart = () => {
                     <img
                       src={item.image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'}
                       alt={item.name}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80';
+                      }}
                       style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
                     />
                   </div>

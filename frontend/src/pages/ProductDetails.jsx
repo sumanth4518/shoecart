@@ -215,6 +215,10 @@ const ProductDetails = () => {
             <img
               src={currentDisplayImage}
               alt={product.name}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80';
+              }}
               style={{
                 maxHeight: '380px',
                 maxWidth: '100%',
@@ -257,7 +261,15 @@ const ProductDetails = () => {
                     transition: 'all 0.2s'
                   }}
                 >
-                  <img src={imgUrl} alt="Thumbnail" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                  <img 
+                    src={imgUrl} 
+                    alt="Thumbnail" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80';
+                    }}
+                    style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
+                  />
                 </button>
               ))}
             </div>

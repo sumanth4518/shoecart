@@ -1019,7 +1019,15 @@ const AdminDashboard = () => {
                   {products.map((p) => (
                     <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                       <td style={{ padding: '0.75rem' }}>
-                        <img src={p.image} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                        <img 
+                          src={p.image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'} 
+                          alt={p.name} 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80';
+                          }}
+                          style={{ width: '40px', height: '40px', objectFit: 'contain' }} 
+                        />
                       </td>
                       <td style={{ padding: '0.75rem', color: '#fff', fontWeight: 600 }}>{p.name}</td>
                       <td style={{ padding: '0.75rem', color: 'var(--color-text-secondary)' }}>{p.category}</td>
