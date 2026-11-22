@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, joinedload
 import stripe
 
 from app.database.session import get_db
@@ -18,6 +18,52 @@ from app.schemas.all_schemas import (
 from app.services.storage_service import storage_service
 
 router = APIRouter()
+
+def send_paid_order_invoice(order: Order, db: Session):
+    """
+    Idempotently generates the in-memory invoice PDF and emails it to the customer.
+    Strictly in-memory with zero disk or S3 persistence.
+    """
+    try:
+        from app.services.invoice_service import invoice_service
+        from app.services.email_service import email_service
+
+        if not order:
+            return
+
+        if order.notes and "[invoice_emailed]" in order.notes:
+            return
+
+        user = getattr(order, "user", None)
+        recipient_email = user.email if user else None
+        recipient_name = user.full_name if user else "Valued Customer"
+
+        if not recipient_email and order.user_id:
+            u = db.query(User).filter(User.id == order.user_id).first()
+            if u:
+                recipient_email = u.email
+                recipient_name = u.full_name or "Valued Customer"
+
+        if not recipient_email:
+            return
+
+        # Generate in-memory PDF without storing anywhere in S3
+        pdf_bytes = invoice_service.generate_invoice_pdf(
+            order=order,
+            recipient_name=recipient_name,
+            recipient_email=recipient_email
+        )
+
+        order.notes = f"{order.notes} [invoice_emailed]".strip() if order.notes else "[invoice_emailed]"
+
+        email_service.dispatch_order_invoice_background(
+            to_email=recipient_email,
+            recipient_name=recipient_name,
+            order=order,
+            pdf_bytes=pdf_bytes
+        )
+    except Exception as exc:
+        print(f"[Payment Invoice Email Warning] Could not dispatch invoice: {exc}")
 
 @router.post("/create-checkout-session", response_model=CheckoutSessionResponse)
 def create_checkout_session(
@@ -367,6 +413,7 @@ def verify_session(
                     for ci in cart.items:
                         db.delete(ci)
 
+                send_paid_order_invoice(order, db)
                 db.commit()
                 db.refresh(payment)
                 db.refresh(order)
@@ -503,6 +550,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                     for ci in cart.items:
                         db.delete(ci)
 
+                if order:
+                    send_paid_order_invoice(order, db)
                 db.commit()
 
     # 2. checkout.session.expired

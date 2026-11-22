@@ -25,6 +25,31 @@ class Settings(BaseSettings):
         "*"
     ]
 
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            v_str = v.strip()
+            if not v_str or v_str == "*":
+                return ["*"]
+            if v_str.startswith("[") and v_str.endswith("]"):
+                try:
+                    import json
+                    parsed = json.loads(v_str)
+                    if isinstance(parsed, list):
+                        return [str(item).strip() for item in parsed if item]
+                except Exception:
+                    v_str = v_str.strip("[]")
+            origins = []
+            for item in v_str.split(","):
+                cleaned = item.strip().strip("'\"")
+                if cleaned:
+                    origins.append(cleaned)
+            return origins if origins else ["*"]
+        elif isinstance(v, list):
+            return [str(item).strip() for item in v if item]
+        return ["*"]
+
     # Neon Auth (Managed Better Auth)
     NEON_AUTH_URL: str = ""
     NEON_AUTH_SECRET: str = ""

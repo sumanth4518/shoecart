@@ -9,10 +9,12 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 
-// Ensure all API calls know where the backend is exactly if configured externally 
-// otherwise rely strictly on the Vite proxy built into vite.config.js for tunneling routing.
-if (import.meta.env.VITE_API_URL) {
-  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+// Ensure all API calls know where the backend is: checks runtime window.__ENV__ first, then Vite build-time env
+const resolvedApiUrl = (typeof window !== 'undefined' && window.__ENV__?.VITE_API_URL) 
+  || import.meta.env.VITE_API_URL;
+
+if (resolvedApiUrl) {
+  axios.defaults.baseURL = resolvedApiUrl.replace(/\/+$/, '');
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

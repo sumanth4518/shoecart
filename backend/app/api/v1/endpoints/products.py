@@ -173,24 +173,49 @@ def get_products(
     if size or colour:
         query = query.join(Product.variants)
         if size:
-            query = query.filter(ProductVariant.size == size)
+            size_clean = size.strip()
+            size_patterns = [size_clean]
+            if not size_clean.upper().startswith("UK") and size_clean.isdigit():
+                size_patterns.append(f"UK {size_clean}")
+                size_patterns.append(f"UK{size_clean}")
+            elif size_clean.upper().startswith("UK"):
+                num_part = size_clean[2:].strip()
+                size_patterns.append(f"UK {num_part}")
+                size_patterns.append(f"UK{num_part}")
+                size_patterns.append(num_part)
+
+            size_patterns = list(set(size_patterns))
+            query = query.filter(
+                or_(*[ProductVariant.size.ilike(p) for p in size_patterns])
+            )
         if colour:
             query = query.filter(ProductVariant.colour_name.ilike(f"%{colour}%"))
 
-    # Sorting
-    if sort_by == "price_asc":
-        query = query.order_by(asc(Product.base_price))
-    elif sort_by == "price_desc":
-        query = query.order_by(desc(Product.base_price))
-    elif sort_by == "name_asc":
-        query = query.order_by(asc(Product.name))
-    else:
-        query = query.order_by(desc(Product.created_at))
-
     if size or colour:
-        product_ids = [pid for (pid,) in query.with_entities(Product.id).distinct().all()]
-        products = db.query(Product).options(*eager_opts).filter(Product.id.in_(product_ids)).order_by(desc(Product.created_at)).all()
+        # Clear ORDER BY before SELECT DISTINCT to prevent PostgreSQL InvalidColumnReference
+        product_ids = [pid for (pid,) in query.order_by(None).with_entities(Product.id).distinct().all()]
+        if not product_ids:
+            products = []
+        else:
+            base_query = db.query(Product).options(*eager_opts).filter(Product.id.in_(product_ids))
+            if sort_by == "price_asc":
+                products = base_query.order_by(asc(Product.base_price)).all()
+            elif sort_by == "price_desc":
+                products = base_query.order_by(desc(Product.base_price)).all()
+            elif sort_by == "name_asc":
+                products = base_query.order_by(asc(Product.name)).all()
+            else:
+                products = base_query.order_by(desc(Product.created_at)).all()
     else:
+        # Sorting
+        if sort_by == "price_asc":
+            query = query.order_by(asc(Product.base_price))
+        elif sort_by == "price_desc":
+            query = query.order_by(desc(Product.base_price))
+        elif sort_by == "name_asc":
+            query = query.order_by(asc(Product.name))
+        else:
+            query = query.order_by(desc(Product.created_at))
         products = query.all()
 
     result = [serialize_product(p) for p in products]

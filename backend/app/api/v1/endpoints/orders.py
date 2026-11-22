@@ -194,8 +194,28 @@ def create_order(
         for ci in cart.items:
             db.delete(ci)
 
+    # Mark invoice dispatched and commit
+    new_order.notes = f"{new_order.notes} [invoice_emailed]".strip() if new_order.notes else "[invoice_emailed]"
     db.commit()
     db.refresh(new_order)
+
+    # Automatically generate in-memory invoice PDF and dispatch email in background
+    try:
+        from app.services.invoice_service import invoice_service
+        from app.services.email_service import email_service
+        pdf_bytes = invoice_service.generate_invoice_pdf(
+            order=new_order,
+            recipient_name=current_user.full_name,
+            recipient_email=current_user.email
+        )
+        email_service.dispatch_order_invoice_background(
+            to_email=current_user.email,
+            recipient_name=current_user.full_name,
+            order=new_order,
+            pdf_bytes=pdf_bytes
+        )
+    except Exception as exc:
+        print(f"[Order Invoice Email Error] Could not generate/send invoice email: {exc}")
 
     return {
         "message": "Order placed successfully",
