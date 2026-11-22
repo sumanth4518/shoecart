@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session, joinedload, selectinload
 from app.database.session import get_db
 from app.core.dependencies import get_current_user, get_current_admin
@@ -293,3 +293,101 @@ def update_order_status(
 
     db.commit()
     return {"message": "Order status updated successfully"}
+
+@router.get("/{order_id}/invoice")
+def download_order_invoice(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Dynamically generates the official Aura Kicks tax invoice PDF in memory
+    and returns it as a direct download stream. Zero S3/disk persistence.
+    """
+    role = db.query(Role).filter(Role.id == current_user.role_id).first()
+    is_admin = role and role.name == "admin"
+
+    eager_opts = [
+        joinedload(Order.user),
+        selectinload(Order.items).joinedload(OrderItem.variant).joinedload(ProductVariant.product)
+    ]
+    query = db.query(Order).options(*eager_opts).filter(Order.id == order_id)
+    if not is_admin:
+        query = query.filter(Order.user_id == current_user.id)
+
+    order = query.first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    from app.services.invoice_service import invoice_service
+    recipient_name = current_user.full_name or "Valued Customer"
+    recipient_email = current_user.email
+    pdf_bytes = invoice_service.generate_invoice_pdf(
+        order=order,
+        recipient_name=recipient_name,
+        recipient_email=recipient_email
+    )
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=AuraKicks_Invoice_{order.order_number}.pdf"
+        }
+    )
+
+@router.post("/{order_id}/resend-invoice")
+def resend_order_invoice(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates the invoice PDF in memory and dispatches it via email to the customer.
+    """
+    role = db.query(Role).filter(Role.id == current_user.role_id).first()
+    is_admin = role and role.name == "admin"
+
+    eager_opts = [
+        joinedload(Order.user),
+        selectinload(Order.items).joinedload(OrderItem.variant).joinedload(ProductVariant.product)
+    ]
+    query = db.query(Order).options(*eager_opts).filter(Order.id == order_id)
+    if not is_admin:
+        query = query.filter(Order.user_id == current_user.id)
+
+    order = query.first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    from app.services.invoice_service import invoice_service
+    from app.services.email_service import email_service
+
+    recipient_name = order.user.full_name if order.user else (current_user.full_name or "Valued Customer")
+    recipient_email = order.user.email if order.user else current_user.email
+
+    pdf_bytes = invoice_service.generate_invoice_pdf(
+        order=order,
+        recipient_name=recipient_name,
+        recipient_email=recipient_email
+    )
+
+    sent = email_service.send_order_invoice_email(
+        to_email=recipient_email,
+        recipient_name=recipient_name,
+        order=order,
+        pdf_bytes=pdf_bytes
+    )
+
+    if not sent:
+        return {
+            "success": False,
+            "message": "SMTP credentials not configured on Render, or connection failed. Please ensure EMAIL_USER and EMAIL_PASSWORD are set in the Render Dashboard Environment tab.",
+            "orderNumber": order.order_number
+        }
+
+    return {
+        "success": True,
+        "message": f"Invoice email dispatched successfully to {recipient_email}",
+        "orderNumber": order.order_number
+    }

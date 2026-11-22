@@ -156,3 +156,17 @@ def update_variant_inventory(
         inv.stock_quantity = stock
     db.commit()
     return {"message": "Inventory updated successfully"}
+
+@router.get("/email/test-smtp")
+def test_smtp_diagnostic(
+    recipient: str = Query(None),
+    current_admin: User = Depends(get_current_admin)
+):
+    """
+    Diagnostic endpoint for administrators to test the live SMTP email configuration.
+    Returns the exact connection status, handshake result, and diagnostic information.
+    """
+    from app.services.email_service import email_service
+    test_target = recipient.strip() if recipient else current_admin.email
+    result = email_service.test_smtp_connection(test_recipient=test_target)
+    return result

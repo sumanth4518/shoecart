@@ -55,6 +55,108 @@ class EmailService:
         """
 
     @classmethod
+    def _execute_smtp_send(cls, clean_user: str, clean_password: str, sender: str, recipient: str, msg_string: str) -> bool:
+        """
+        Sends an email payload using smtplib with dual-port fallback (Port 587 STARTTLS & Port 465 SSL).
+        Automatically adapts to cloud firewalls on Render/AWS.
+        """
+        import ssl
+        configured_port = int(settings.EMAIL_PORT) if settings.EMAIL_PORT else 587
+        ports_to_try = [configured_port]
+        if configured_port == 587 and 465 not in ports_to_try:
+            ports_to_try.append(465)
+        elif configured_port == 465 and 587 not in ports_to_try:
+            ports_to_try.append(587)
+
+        last_err = None
+        for port in ports_to_try:
+            try:
+                if port == 465:
+                    ssl_ctx = ssl.create_default_context()
+                    with smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=12, context=ssl_ctx) as server:
+                        server.login(clean_user, clean_password)
+                        server.sendmail(sender, recipient, msg_string)
+                        print(f"✅ [SMTP SUCCESS] Delivered via SSL (port 465) to {recipient}")
+                        return True
+                else:
+                    with smtplib.SMTP(settings.EMAIL_HOST, port, timeout=12) as server:
+                        server.starttls()
+                        server.login(clean_user, clean_password)
+                        server.sendmail(sender, recipient, msg_string)
+                        print(f"✅ [SMTP SUCCESS] Delivered via STARTTLS (port {port}) to {recipient}")
+                        return True
+            except Exception as err:
+                last_err = err
+                print(f"⚠️ [SMTP Attempt Notice] Delivery attempt failed on {settings.EMAIL_HOST}:{port}: {err}")
+
+        raise last_err or Exception("All SMTP ports failed.")
+
+    @classmethod
+    def test_smtp_connection(cls, test_recipient: str = None) -> dict:
+        """
+        Tests the SMTP server connection, STARTTLS / SSL handshake, and authentication.
+        Optionally sends a small test ping email to test_recipient.
+        """
+        clean_user = settings.EMAIL_USER.strip("\"' \t\n") if settings.EMAIL_USER else ""
+        clean_password = settings.EMAIL_PASSWORD.strip("\"' \t\n").replace(" ", "") if settings.EMAIL_PASSWORD else ""
+        clean_from_email = settings.EMAIL_FROM.strip("\"' \t\n") if settings.EMAIL_FROM else (clean_user or "noreply@aurakicks.com")
+        if ("gmail" in settings.EMAIL_HOST.lower() or "gmail" in clean_user.lower()) and ("aurakicks.com" in clean_from_email or not clean_from_email):
+            clean_from_email = clean_user
+
+        if not clean_user or not clean_password:
+            return {
+                "configured": False,
+                "error": "EMAIL_USER or EMAIL_PASSWORD environment variable is missing on the server. Please add them in the Render Dashboard under Environment tab.",
+                "host": settings.EMAIL_HOST,
+                "port": settings.EMAIL_PORT,
+                "user": clean_user or "NOT_SET",
+                "from_email": clean_from_email
+            }
+
+        try:
+            configured_port = int(settings.EMAIL_PORT) if settings.EMAIL_PORT else 587
+            if configured_port == 465:
+                import ssl
+                ssl_ctx = ssl.create_default_context()
+                server = smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=10, context=ssl_ctx)
+            else:
+                server = smtplib.SMTP(settings.EMAIL_HOST, configured_port, timeout=10)
+                server.starttls()
+
+            server.login(clean_user, clean_password)
+
+            email_sent = False
+            if test_recipient:
+                test_msg = MIMEText("This is an automated SMTP connection test from Aura Kicks.", "plain", "utf-8")
+                test_msg["Subject"] = "[Aura Kicks] SMTP Diagnostic Test"
+                test_msg["From"] = f'"Aura Kicks" <{clean_from_email}>'
+                test_msg["To"] = test_recipient
+                server.sendmail(clean_from_email, test_recipient, test_msg.as_string())
+                email_sent = True
+
+            server.quit()
+            return {
+                "configured": True,
+                "status": "connected_and_authenticated",
+                "host": settings.EMAIL_HOST,
+                "port": configured_port,
+                "user": clean_user,
+                "from_email": clean_from_email,
+                "test_email_sent_to": test_recipient if email_sent else None,
+                "message": "SMTP connection and credentials verified successfully."
+            }
+        except Exception as err:
+            return {
+                "configured": True,
+                "status": "failed",
+                "host": settings.EMAIL_HOST,
+                "port": settings.EMAIL_PORT,
+                "user": clean_user,
+                "from_email": clean_from_email,
+                "error": str(err)
+            }
+
+    @classmethod
     def send_otp_email(cls, to_email: str, otp_code: str, purpose: str = "registration") -> bool:
         subject = f"[Aura Kicks] Your Verification Code: {otp_code}" if purpose != "password_reset" else f"[Aura Kicks] Password Reset Code: {otp_code}"
         body_html = cls.get_template_html(otp_code, purpose)
@@ -80,6 +182,10 @@ class EmailService:
         clean_password = settings.EMAIL_PASSWORD.strip("\"' \t\n").replace(" ", "") if settings.EMAIL_PASSWORD else ""
         clean_from_email = settings.EMAIL_FROM.strip("\"' \t\n") if settings.EMAIL_FROM else (clean_user or "noreply@aurakicks.com")
         
+        # If sending via Gmail SMTP, ensure sender matches the authenticated user to satisfy Gmail SPF/policy
+        if ("gmail" in settings.EMAIL_HOST.lower() or "gmail" in clean_user.lower()) and ("aurakicks.com" in clean_from_email or not clean_from_email):
+            clean_from_email = clean_user
+
         # Format friendly sender name e.g. "Aura Kicks <user@gmail.com>"
         formatted_from = f'"Aura Kicks" <{clean_from_email}>' if "<" not in clean_from_email else clean_from_email
 
@@ -100,10 +206,7 @@ class EmailService:
                 msg.attach(MIMEText(plain_text, "plain", "utf-8"))
                 msg.attach(MIMEText(body_html, "html", "utf-8"))
 
-                with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=10) as server:
-                    server.starttls()
-                    server.login(clean_user, clean_password)
-                    server.sendmail(clean_from_email, to_email, msg.as_string())
+                cls._execute_smtp_send(clean_user, clean_password, clean_from_email, to_email, msg.as_string())
                 print(f"✅ [SMTP SUCCESS] OTP email delivered to {to_email}")
                 return True
             except Exception as e:
@@ -325,6 +428,11 @@ class EmailService:
         clean_user = settings.EMAIL_USER.strip("\"' \t\n") if settings.EMAIL_USER else ""
         clean_password = settings.EMAIL_PASSWORD.strip("\"' \t\n").replace(" ", "") if settings.EMAIL_PASSWORD else ""
         clean_from_email = settings.EMAIL_FROM.strip("\"' \t\n") if settings.EMAIL_FROM else (clean_user or "noreply@aurakicks.com")
+
+        # If sending via Gmail SMTP, ensure sender matches the authenticated user to satisfy Gmail SPF/policy
+        if ("gmail" in settings.EMAIL_HOST.lower() or "gmail" in clean_user.lower()) and ("aurakicks.com" in clean_from_email or not clean_from_email):
+            clean_from_email = clean_user
+
         formatted_from = f'"Aura Kicks" <{clean_from_email}>' if "<" not in clean_from_email else clean_from_email
 
         if clean_user and clean_password:
@@ -356,10 +464,7 @@ class EmailService:
                 )
                 msg.attach(pdf_attachment)
 
-                with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=12) as server:
-                    server.starttls()
-                    server.login(clean_user, clean_password)
-                    server.sendmail(clean_from_email, to_email, msg.as_string())
+                cls._execute_smtp_send(clean_user, clean_password, clean_from_email, to_email, msg.as_string())
 
                 print(f"✅ [SMTP SUCCESS] Order invoice PDF sent to {to_email} for order {order_number}")
                 return True

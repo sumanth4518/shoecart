@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     EMAIL_PORT: int = 587
     EMAIL_USER: str = ""
     EMAIL_PASSWORD: str = ""
-    EMAIL_FROM: str = "noreply@aurakicks.com"
+    EMAIL_FROM: str = ""
     OTP_EXPIRY_MINUTES: int = 10
     OTP_COOLDOWN_SECONDS: int = 60
 
