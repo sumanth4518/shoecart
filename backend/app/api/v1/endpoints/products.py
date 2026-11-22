@@ -32,13 +32,33 @@ def get_product_eager_options():
     ]
 
 def serialize_product(p: Product) -> dict:
-    primary_img = next((storage_service.get_presigned_url(img.image_url) for img in p.images if img.is_primary), None)
-    if not primary_img and p.images:
-        primary_img = storage_service.get_presigned_url(p.images[0].image_url)
+    primary_img = None
+    try:
+        primary_img = next((storage_service.get_presigned_url(img.image_url) for img in p.images if img.is_primary), None)
+        if not primary_img and p.images:
+            primary_img = storage_service.get_presigned_url(p.images[0].image_url)
+    except Exception:
+        primary_img = None
+
     if not primary_img:
         primary_img = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80"
 
     total_stock = sum(v.inventory.stock_quantity for v in p.variants if v.inventory) if p.variants else 0
+
+    serialized_images = []
+    if p.images:
+        for img in p.images:
+            try:
+                url = storage_service.get_presigned_url(img.image_url)
+            except Exception:
+                url = img.image_url or "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80"
+            serialized_images.append({
+                "id": img.id,
+                "image_key": img.image_key,
+                "image_url": url,
+                "is_primary": img.is_primary,
+                "display_order": img.display_order
+            })
 
     return {
         "id": p.id,
@@ -55,16 +75,7 @@ def serialize_product(p: Product) -> dict:
         "brand_id": p.brand_id,
         "stock": total_stock,
         "image": primary_img,
-        "images": [
-            {
-                "id": img.id,
-                "image_key": img.image_key,
-                "image_url": storage_service.get_presigned_url(img.image_url),
-                "is_primary": img.is_primary,
-                "display_order": img.display_order
-            }
-            for img in p.images
-        ],
+        "images": serialized_images,
         "videos": [
             {
                 "id": v.id,

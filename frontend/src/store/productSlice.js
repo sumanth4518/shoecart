@@ -15,10 +15,10 @@ export const getProducts = createAsyncThunk(
   async (filters = {}, thunkAPI) => {
     try {
       const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.category && filters.category !== 'All') params.append('category', filters.category);
-      if (filters.brand) params.append('brand', filters.brand);
-      if (filters.size) params.append('size', filters.size);
+      if (filters.search) params.append('search', filters.search.trim());
+      if (filters.category && filters.category !== 'All') params.append('category', filters.category.trim());
+      if (filters.brand) params.append('brand', filters.brand.trim());
+      if (filters.size) params.append('size', filters.size.trim());
       if (filters.min_price) params.append('min_price', filters.min_price);
       if (filters.max_price) params.append('max_price', filters.max_price);
       if (filters.sort_by) params.append('sort_by', filters.sort_by);
@@ -26,10 +26,16 @@ export const getProducts = createAsyncThunk(
       if (filters.is_trending) params.append('is_trending', 'true');
       if (filters.is_new_arrival) params.append('is_new_arrival', 'true');
 
-      const response = await axios.get(`/api/products?${params.toString()}`);
+      const response = await axios.get(`/api/products?${params.toString()}`, {
+        signal: thunkAPI.signal,
+        timeout: 15000
+      });
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.detail || error.message;
+      if (axios.isCancel(error) || error.name === 'CanceledError') {
+        return thunkAPI.rejectWithValue('ABORTED');
+      }
+      const message = error.response?.data?.detail || error.message || 'Error fetching products';
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -71,6 +77,9 @@ export const productSlice = createSlice({
       })
       .addCase(getProducts.rejected, (state, action) => {
         state.isLoading = false;
+        if (action.payload === 'ABORTED') {
+          return;
+        }
         state.isError = true;
         state.message = action.payload;
       })

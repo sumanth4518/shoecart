@@ -163,8 +163,13 @@ class NeonStorageService:
             except Exception as e:
                 print(f"[Neon Storage Presign Warning] {e}")
 
-        # Local uploads or server-side media proxy fallback
-        if clean_key:
+        # If the original key was already a valid HTTP(S) URL, prefer returning it directly
+        if object_key.startswith("http://") or object_key.startswith("https://"):
+            return object_key
+
+        # Local uploads fallback if file exists on disk
+        local_path = os.path.join(self.local_upload_dir, clean_key)
+        if os.path.exists(local_path):
             return f"/uploads/{clean_key}"
 
         return "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80"

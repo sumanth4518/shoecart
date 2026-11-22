@@ -197,7 +197,7 @@ const Home = () => {
                 className="btn btn-primary"
                 style={{ padding: '0.9rem 2rem', fontSize: '1rem', cursor: 'pointer' }}
               >
-                {isAuthenticated ? 'Shop Footwear' : 'Sign In to View Shoes'}
+                Shop Footwear
                 <ArrowRight size={18} />
               </button>
 
@@ -215,7 +215,7 @@ const Home = () => {
                 className="btn btn-outline"
                 style={{ padding: '0.9rem 1.8rem', fontSize: '1rem', cursor: 'pointer' }}
               >
-                {isAuthenticated ? 'Explore Sneakers' : 'Create Free Account'}
+                Explore Sneakers
               </button>
             </div>
 
@@ -240,79 +240,24 @@ const Home = () => {
           <div className="hero-visual">
             <div className="hero-glow-circle" />
 
-            {isAuthenticated ? (
-              <>
-                <img
-                  src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=85"
-                  alt="Nike Air Max Pulse Hero"
-                  className="hero-floating-sneaker"
-                />
+            <img
+              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=85"
+              alt="Nike Air Max Pulse Hero"
+              className="hero-floating-sneaker"
+            />
 
-                {/* Floating Card Accent */}
-                <div className="hero-floating-badge">
-                  <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Featured Silhouette
-                  </span>
-                  <h5 style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 700, margin: '2px 0' }}>
-                    Nike Air Max Pulse
-                  </h5>
-                  <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                    ₹11,495
-                  </span>
-                </div>
-              </>
-            ) : (
-              /* GUEST: ZERO SHOES DISPLAYED IN HERO. LUXURY LOCKED VAULT EMBLEM */
-              <div style={{
-                position: 'relative',
-                zIndex: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                padding: '3rem 2rem',
-                borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'rgba(23, 23, 23, 0.92)',
-                border: '1px solid rgba(255, 107, 26, 0.4)',
-                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.85), 0 0 40px var(--color-primary-glow)',
-                maxWidth: '420px',
-                width: '100%'
-              }}>
-                <div style={{
-                  width: '84px',
-                  height: '84px',
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(255, 107, 26, 0.3) 0%, rgba(255, 107, 26, 0.05) 70%)',
-                  border: '2px solid var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--color-primary)',
-                  marginBottom: '1.25rem',
-                  boxShadow: '0 0 35px var(--color-primary-glow)'
-                }}>
-                  <Lock size={42} strokeWidth={2.2} />
-                </div>
-                <span className="badge badge-orange" style={{ marginBottom: '0.75rem', fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}>
-                  MEMBERS-ONLY VAULT
-                </span>
-                <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-                  Catalogue Locked
-                </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', margin: '0 0 1.5rem 0' }}>
-                  All silhouettes, pricing, and live inventory are private. Sign in to view shoes.
-                </p>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="btn btn-primary"
-                  style={{ width: '100%', padding: '0.85rem', fontSize: '0.92rem', fontWeight: 800 }}
-                >
-                  Sign In to Access Shoes
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            )}
+            {/* Floating Card Accent */}
+            <div className="hero-floating-badge">
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Featured Silhouette
+              </span>
+              <h5 style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 700, margin: '2px 0' }}>
+                Nike Air Max Pulse
+              </h5>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>
+                ₹11,495
+              </span>
+            </div>
           </div>
 
         </div>
@@ -479,106 +424,81 @@ const Home = () => {
       <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
         
         {!isAuthenticated ? (
-          /* STRICT MEMBERS-ONLY GATE: ZERO SHOES DISPLAYED BEFORE LOGIN */
-          <div className="luxury-card member-gate-card" style={{
-            textAlign: 'center',
-            padding: '4.5rem 1.75rem',
-            background: 'radial-gradient(ellipse at 50% 0%, rgba(255, 107, 26, 0.18) 0%, rgba(20, 20, 20, 0.98) 75%)',
-            border: '1px solid rgba(255, 107, 26, 0.35)',
-            borderRadius: 'var(--radius-lg)',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.85)',
-            marginBottom: '4rem'
-          }}>
-            <div style={{
-              width: '76px',
-              height: '76px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 107, 26, 0.15)',
-              border: '2px solid var(--color-primary)',
-              color: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.5rem',
-              boxShadow: '0 0 35px var(--color-primary-glow)'
-            }}>
-              <Lock size={36} />
-            </div>
-
-            <span className="badge badge-orange" style={{ marginBottom: '1rem', padding: '0.45rem 1.1rem', fontSize: '0.82rem' }}>
-              MEMBERS-ONLY FOOTWEAR VAULT
-            </span>
-
-            <h2 style={{
-              fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
-              color: '#fff',
-              textTransform: 'uppercase',
-              marginBottom: '1rem',
-              fontWeight: 900,
-              letterSpacing: '-0.02em'
-            }}>
-              Sign In to View All Shoes
-            </h2>
-
-            <p style={{
-              color: 'var(--color-text-secondary)',
-              maxWidth: '620px',
-              margin: '0 auto 2.25rem',
-              fontSize: '1.05rem',
-              lineHeight: '1.65'
-            }}>
-              Our entire collection of 330+ authenticated footwear silhouettes, limited drops, and live UK sizing inventory is exclusively accessible to logged-in members. Sign in or create a free account to browse the vault.
-            </p>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => navigate('/login')} 
-                className="btn btn-primary" 
-                style={{ padding: '1rem 2.5rem', fontSize: '1.02rem', fontWeight: 800 }}
-              >
-                Sign In to View Shoes
-                <ArrowRight size={18} />
-              </button>
-              <button 
-                onClick={() => navigate('/login')} 
-                className="btn btn-outline" 
-                style={{ padding: '1rem 2.25rem', fontSize: '1.02rem' }}
-              >
-                Create Free Account
-              </button>
+          /* UNREGISTERED / GUEST LANDING SHOWCASE: ZERO WEIRD LOCK CARDS */
+          <div style={{ padding: '2rem 0', marginBottom: '3rem' }}>
+            <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 3rem' }}>
+              <span className="badge badge-orange" style={{ marginBottom: '0.75rem' }}>THE AURA STANDARD</span>
+              <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+                Engineered For Athletes. Curated For Collectors.
+              </h2>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>
+                From court-ready performance to limited-run street silhouettes, every pair in our archive is authenticated through a multi-point verification process.
+              </p>
             </div>
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '1.5rem',
-              marginTop: '3.5rem',
-              paddingTop: '2.5rem',
-              borderTop: '1px solid var(--color-border)',
-              textAlign: 'left'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.75rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{ color: 'var(--color-primary)', marginTop: '2px' }}><CheckCircle2 size={20} /></div>
-                <div>
-                  <h5 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 3px 0' }}>330+ Verified Models</h5>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.82rem', margin: 0 }}>Nike, Jordan, Adidas, New Balance, and Puma authenticated footwear.</p>
+              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 107, 26, 0.12)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem'
+                }}>
+                  <ShieldCheck size={28} />
                 </div>
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>100% Verified Authentic</h3>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                  Every silhouette undergoes rigorous inspection by certified specialists before receiving the AURA authenticity seal.
+                </p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{ color: 'var(--color-primary)', marginTop: '2px' }}><CheckCircle2 size={20} /></div>
-                <div>
-                  <h5 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 3px 0' }}>Live UK Sizing Stock</h5>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.82rem', margin: 0 }}>Filter live stock for UK 7, 8, 9, 10, and 11 with instant checkout.</p>
+
+              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 107, 26, 0.12)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem'
+                }}>
+                  <Zap size={28} />
                 </div>
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>Express 24-48h Dispatch</h3>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                  Direct express dispatch from our climate-controlled fulfillment centers with real-time SMS and email tracking.
+                </p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{ color: 'var(--color-primary)', marginTop: '2px' }}><CheckCircle2 size={20} /></div>
-                <div>
-                  <h5 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 3px 0' }}>Express Tracked Delivery</h5>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.82rem', margin: 0 }}>24-48h express dispatch with PDF tax invoice and fit guarantee.</p>
+
+              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 107, 26, 0.12)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem'
+                }}>
+                  <CheckCircle2 size={28} />
                 </div>
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>Precision Fit Guarantee</h3>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                  Live UK sizing stock with dedicated customer support and 7-day hassle-free size exchange guarantee.
+                </p>
               </div>
             </div>
           </div>
@@ -728,7 +648,7 @@ const Home = () => {
                   {selectedBrand && ` • ${selectedBrand}`}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                  Showing {products.length} authenticated footwear models &bull; <span style={{ color: 'var(--color-success)' }}>Member Access Unlocked</span>
+                  Showing {products.length} authenticated footwear models
                 </p>
               </div>
               {isNewArrival && (
@@ -762,9 +682,24 @@ const Home = () => {
                 ))}
               </div>
             ) : isError ? (
-              <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-                <h4 style={{ color: 'var(--color-error)', marginBottom: '1rem' }}>Error loading catalogue</h4>
-                <p style={{ color: 'var(--color-text-muted)' }}>{message}</p>
+              <div style={{ textAlign: 'center', padding: '4rem 1rem', backgroundColor: 'var(--color-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+                <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Unable to load catalogue</h4>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
+                  {message === 'Network Error' ? 'Connecting to AURA KICKS secure catalog servers...' : message}
+                </p>
+                <button
+                  onClick={() => dispatch(getProducts({
+                    search: searchTerm,
+                    category: selectedCategory === 'All' ? '' : selectedCategory,
+                    brand: selectedBrand,
+                    size: selectedSize,
+                    sort_by: sortBy,
+                    is_new_arrival: isNewArrival ? true : undefined
+                  }))}
+                  className="btn btn-primary"
+                >
+                  Reload Footwear
+                </button>
               </div>
             ) : products.length === 0 ? (
               <div style={{

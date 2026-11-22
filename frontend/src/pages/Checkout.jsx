@@ -376,8 +376,12 @@ const Checkout = () => {
             {cartItems.map((item) => (
               <div key={`${item.product_id}-${item.variant_id}`} style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                 <img
-                  src={item.image}
+                  src={item.image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'}
                   alt={item.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80';
+                  }}
                   style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'contain', backgroundColor: 'var(--color-surface)', padding: '4px' }}
                 />
                 <div style={{ flex: 1, overflow: 'hidden' }}>
