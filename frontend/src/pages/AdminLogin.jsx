@@ -73,7 +73,7 @@ const AdminLogin = () => {
               name="email"
               value={email}
               onChange={onChange}
-              placeholder="admin@blinkit.com"
+              placeholder="admin@aurakicks.com"
               className="input-control"
               required
             />

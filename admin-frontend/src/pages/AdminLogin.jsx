@@ -76,7 +76,7 @@ const AdminLogin = () => {
                 name="email"
                 value={email}
                 onChange={onChange}
-                placeholder="admin@blinkit.com"
+                placeholder="admin@aurakicks.com"
                 className="input-control"
                 style={{ paddingLeft: '2.5rem' }}
                 required
@@ -116,18 +116,9 @@ const AdminLogin = () => {
         </form>
 
         <div style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-            Default test administrator credentials:
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.82rem' }}>
+            AURA KICKS Internal Console &bull; Authorized Personnel Only
           </div>
-          <code style={{ display: 'block', background: 'var(--color-elevated)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', color: 'var(--color-primary)', fontSize: '0.8rem', marginBottom: '1rem' }}>
-            admin@blinkit.com / admin123
-          </code>
-          <a
-            href="http://localhost:3000"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text-secondary)', fontSize: '0.82rem', textDecoration: 'none' }}
-          >
-            Looking for Customer Storefront? Go to Port 3000 <ExternalLink size={12} />
-          </a>
         </div>
 
       </div>
