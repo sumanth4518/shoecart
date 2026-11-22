@@ -7,6 +7,3 @@ window.__ENV__ = {
   VITE_API_URL: "${VITE_API_URL:-}"
 };
 EOF
-
-# Execute the CMD passed to Docker (default: nginx -g "daemon off;")
-exec "$@"

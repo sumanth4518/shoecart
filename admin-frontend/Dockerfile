@@ -27,14 +27,13 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copy custom production nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy entrypoint script for runtime environment variable injection
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Copy runtime environment variable generator into official Nginx entrypoint.d
+COPY docker-entrypoint.sh /docker-entrypoint.d/40-generate-env-config.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-generate-env-config.sh && chmod +x /docker-entrypoint.d/40-generate-env-config.sh
 
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
