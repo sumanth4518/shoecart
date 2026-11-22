@@ -10,7 +10,9 @@ import {
   TrendingUp, 
   CheckCircle2, 
   Star, 
-  Zap 
+  Zap,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 import { getProducts } from '../store/productSlice';
 import ProductCard from '../components/ProductCard';
@@ -391,6 +393,68 @@ const Home = () => {
       {/* 3. FOOTWEAR CATALOGUE & FILTER BAR */}
       <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
         
+        {/* Guest Preview Notice Bar (Shown when visitor is NOT logged in) */}
+        {!user && (
+          <div style={{
+            backgroundColor: 'rgba(255, 107, 26, 0.08)',
+            border: '1px solid rgba(255, 107, 26, 0.28)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '1rem 1.4rem',
+            marginBottom: '1.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: 'rgba(255, 107, 26, 0.15)',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Lock size={18} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 800, letterSpacing: '-0.01em' }}>
+                    AURA KICKS VAULT &bull; GUEST PREVIEW
+                  </span>
+                  <span className="badge badge-orange" style={{ fontSize: '0.7rem' }}>
+                    Previewing 8 Silhouettes
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: '2px 0 0 0' }}>
+                  Sign in or create a free account to unlock all 330+ silhouettes, filter by your exact UK size, and purchase.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+              <button
+                onClick={() => navigate('/login')}
+                className="btn btn-primary"
+                style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="btn btn-outline"
+                style={{ padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}
+              >
+                Create Account
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search & Sorting Toolbar */}
         <div style={{
           backgroundColor: 'var(--color-card)',
@@ -402,10 +466,10 @@ const Home = () => {
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
             
             {/* Search Input */}
-            <div style={{ flex: '1 1 320px', position: 'relative' }}>
+            <div style={{ flex: '1 1 280px', position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Search by silhouette name, description, brand..."
+                placeholder={user ? "Search by silhouette name, description, brand..." : "Search preview (Sign in to search all 330+)..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-control"
@@ -420,7 +484,14 @@ const Home = () => {
               {sizes.map((s) => (
                 <button
                   key={s}
-                  onClick={() => setSelectedSize(selectedSize === s ? '' : s)}
+                  onClick={() => {
+                    if (!user) {
+                      navigate('/login');
+                    } else {
+                      setSelectedSize(selectedSize === s ? '' : s);
+                    }
+                  }}
+                  title={!user ? "Sign in to filter sizes across all 330+ products" : undefined}
                   style={{
                     padding: '0.4rem 0.75rem',
                     borderRadius: '8px',
@@ -530,11 +601,15 @@ const Home = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <h2 style={{ fontSize: '1.6rem', color: '#fff', textTransform: 'uppercase' }}>
-              {isNewArrival ? '⚡ New Drops & Exclusive Arrivals' : selectedCategory === 'All' ? 'All Footwear Silhouettes' : selectedCategory}
+              {isNewArrival ? '⚡ New Drops & Exclusive Arrivals' : selectedCategory === 'All' ? 'Footwear Silhouettes' : selectedCategory}
               {selectedBrand && ` &bull; ${selectedBrand}`}
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-              Showing {products.length} premium products
+              {user ? (
+                <>Showing {products.length} authenticated footwear models &bull; <span style={{ color: 'var(--color-success)' }}>Member Access Unlocked</span></>
+              ) : (
+                <>Showing {Math.min(8, products.length)} featured preview drops &bull; <span style={{ color: 'var(--color-primary)' }}>Sign in to unlock all {products.length} products</span></>
+              )}
             </p>
           </div>
           {isNewArrival && (
@@ -595,11 +670,107 @@ const Home = () => {
             </button>
           </div>
         ) : (
-          <div className="grid-catalog">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <>
+            <div className="grid-catalog">
+              {(user ? products : products.slice(0, 8)).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+
+            {/* EXCLUSIVE MEMBER ACCESS GATE (Shown when guest is NOT logged in) */}
+            {!user && (
+              <div className="luxury-card member-gate-card" style={{
+                marginTop: '3rem',
+                textAlign: 'center',
+                padding: '3.5rem 1.5rem',
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(255, 107, 26, 0.16) 0%, rgba(23, 23, 23, 0.96) 75%)',
+                border: '1px solid rgba(255, 107, 26, 0.35)',
+                borderRadius: 'var(--radius-lg)',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)'
+              }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 107, 26, 0.15)',
+                  border: '1px solid var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem',
+                  boxShadow: '0 0 25px var(--color-primary-glow)'
+                }}>
+                  <Lock size={28} />
+                </div>
+
+                <span className="badge badge-orange" style={{ marginBottom: '0.85rem' }}>
+                  EXCLUSIVE MEMBER ACCESS
+                </span>
+
+                <h3 style={{
+                  fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)',
+                  color: '#fff',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.85rem',
+                  fontWeight: 900,
+                  letterSpacing: '-0.02em'
+                }}>
+                  Unlock The Complete 330+ Silhouette Vault
+                </h3>
+
+                <p style={{
+                  color: 'var(--color-text-secondary)',
+                  maxWidth: '580px',
+                  margin: '0 auto 2rem',
+                  fontSize: '0.96rem',
+                  lineHeight: '1.6'
+                }}>
+                  You are currently viewing a guest preview of 8 silhouettes. Create a free account or sign in to browse all 330+ authenticated footwear models, check real-time size inventory (UK 7–11), and access express checkout.
+                </p>
+
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => navigate('/login')} 
+                    className="btn btn-primary" 
+                    style={{ padding: '0.9rem 2.25rem', fontSize: '0.98rem', fontWeight: 700 }}
+                  >
+                    Sign In to Unlock Full Catalog
+                    <ArrowRight size={18} />
+                  </button>
+                  <button 
+                    onClick={() => navigate('/login')} 
+                    className="btn btn-outline" 
+                    style={{ padding: '0.9rem 2rem', fontSize: '0.98rem' }}
+                  >
+                    Create Free Account
+                  </button>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '2.5rem',
+                  marginTop: '2.5rem',
+                  paddingTop: '1.75rem',
+                  borderTop: '1px solid var(--color-border)',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                    <CheckCircle2 size={16} color="var(--color-primary)" /> 330+ Verified Silhouettes
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                    <CheckCircle2 size={16} color="var(--color-primary)" /> Real-Time UK Size Inventory
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                    <CheckCircle2 size={16} color="var(--color-primary)" /> Express 24-48h Dispatch
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
       </section>
