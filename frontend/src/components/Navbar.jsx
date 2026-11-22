@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   ShoppingBag, 
@@ -21,6 +21,10 @@ const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
+
+  const [searchParams] = useSearchParams();
+  const currentCategory = searchParams.get('category');
+  const isNewArrivalActive = searchParams.get('is_new_arrival') === 'true';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -85,31 +89,70 @@ const Navbar = () => {
         {/* Center Navigation Links (Desktop) */}
         <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '1.8rem' }}>
           <Link 
-            to="/" 
+            to="/?category=All" 
+            onClick={() => {
+              if (location.pathname === '/') {
+                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
             style={{ 
               fontSize: '0.95rem', 
-              fontWeight: 600, 
-              color: location.pathname === '/' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-              transition: 'color 0.2s'
+              fontWeight: (location.pathname === '/' && (!currentCategory || currentCategory === 'All') && !isNewArrivalActive) ? 700 : 500, 
+              color: (location.pathname === '/' && (!currentCategory || currentCategory === 'All') && !isNewArrivalActive) ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              transition: 'color 0.2s',
+              cursor: 'pointer'
             }}
           >
             Catalog
           </Link>
           <Link 
             to="/?category=Sneakers" 
-            style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--color-text-secondary)' }}
+            onClick={() => {
+              if (location.pathname === '/') {
+                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            style={{ 
+              fontSize: '0.95rem', 
+              fontWeight: currentCategory === 'Sneakers' ? 700 : 500, 
+              color: currentCategory === 'Sneakers' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              transition: 'color 0.2s',
+              cursor: 'pointer'
+            }}
           >
             Sneakers
           </Link>
           <Link 
             to="/?category=Running+Shoes" 
-            style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--color-text-secondary)' }}
+            onClick={() => {
+              if (location.pathname === '/') {
+                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            style={{ 
+              fontSize: '0.95rem', 
+              fontWeight: (currentCategory === 'Running Shoes' || currentCategory === 'Running') ? 700 : 500, 
+              color: (currentCategory === 'Running Shoes' || currentCategory === 'Running') ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              transition: 'color 0.2s',
+              cursor: 'pointer'
+            }}
           >
             Running
           </Link>
           <Link 
             to="/?is_new_arrival=true" 
-            style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--color-text-secondary)' }}
+            onClick={() => {
+              if (location.pathname === '/') {
+                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            style={{ 
+              fontSize: '0.95rem', 
+              fontWeight: isNewArrivalActive ? 700 : 500, 
+              color: isNewArrivalActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              transition: 'color 0.2s',
+              cursor: 'pointer'
+            }}
           >
             New Drops
           </Link>

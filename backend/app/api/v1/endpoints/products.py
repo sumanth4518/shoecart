@@ -146,8 +146,14 @@ def get_products(
         )
 
     if category and category.lower() != "all":
+        cat_clean = category.strip()
         query = query.join(Product.category).filter(
-            or_(Category.name.ilike(category), Category.slug == category.lower())
+            or_(
+                Category.name.ilike(cat_clean),
+                Category.name.ilike(f"%{cat_clean}%"),
+                Category.slug == cat_clean.lower(),
+                Category.slug.ilike(f"%{cat_clean.lower()}%")
+            )
         )
 
     if brand:

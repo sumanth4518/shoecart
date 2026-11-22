@@ -9,10 +9,8 @@ import {
   Flame, 
   TrendingUp, 
   CheckCircle2, 
-  Star,
-  Zap,
-  Lock,
-  ShieldCheck
+  Star, 
+  Zap 
 } from 'lucide-react';
 import { getProducts } from '../store/productSlice';
 import ProductCard from '../components/ProductCard';
@@ -28,28 +26,70 @@ const Home = () => {
   const initialSearch = searchParams.get('search') || '';
   const initialCategory = searchParams.get('category') || 'All';
   const initialBrand = searchParams.get('brand') || '';
+  const initialNewArrival = searchParams.get('is_new_arrival') === 'true';
 
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategory.toLowerCase() === 'running' ? 'Running Shoes' : initialCategory
+  );
   const [selectedBrand, setSelectedBrand] = useState(initialBrand);
   const [selectedSize, setSelectedSize] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [isNewArrival, setIsNewArrival] = useState(initialNewArrival);
 
-  // Only dispatch catalogue query if the user is authenticated
+  // Dynamically sync state with URL query parameters
   useEffect(() => {
-    if (!user) return;
+    const cat = searchParams.get('category');
+    const brand = searchParams.get('brand');
+    const search = searchParams.get('search');
+    const newDrop = searchParams.get('is_new_arrival') === 'true';
+
+    if (cat) {
+      if (cat.toLowerCase() === 'running') {
+        setSelectedCategory('Running Shoes');
+      } else {
+        setSelectedCategory(cat);
+      }
+      setIsNewArrival(false);
+    } else if (newDrop) {
+      setSelectedCategory('All');
+      setIsNewArrival(true);
+      setSortBy('newest');
+    } else if (searchParams.has('category') && cat === 'All') {
+      setSelectedCategory('All');
+      setIsNewArrival(false);
+    }
+
+    if (brand !== null) {
+      setSelectedBrand(brand);
+    }
+    if (search !== null) {
+      setSearchTerm(search);
+    }
+
+    if (cat || brand || search || newDrop) {
+      const el = document.getElementById('catalog');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [searchParams]);
+
+  // Query products whenever filter parameters update (accessible to all visitors)
+  useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(getProducts({
         search: searchTerm,
         category: selectedCategory === 'All' ? '' : selectedCategory,
         brand: selectedBrand,
         size: selectedSize,
-        sort_by: sortBy
+        sort_by: sortBy,
+        is_new_arrival: isNewArrival ? true : undefined
       }));
-    }, 350);
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [user, searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, dispatch]);
+  }, [searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, isNewArrival, dispatch]);
 
   const categories = [
     'All',
@@ -92,9 +132,18 @@ const Home = () => {
           {/* Hero Copy */}
           <div className="hero-copy">
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-              <span className="badge badge-orange" style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem' }}>
+              <button
+                onClick={() => {
+                  setIsNewArrival(true);
+                  setSelectedCategory('All');
+                  const el = document.getElementById('catalog');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="badge badge-orange"
+                style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', border: 'none', background: 'rgba(255, 107, 26, 0.15)', color: 'var(--color-primary)' }}
+              >
                 <Zap size={14} /> NEW DROP &bull; SS26 COLLECTION
-              </span>
+              </button>
             </div>
 
             <h1 className="hero-heading" style={{
@@ -139,6 +188,7 @@ const Home = () => {
               <button
                 onClick={() => {
                   setSelectedCategory('Sneakers');
+                  setIsNewArrival(false);
                   const el = document.getElementById('catalog');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -338,129 +388,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 3. CATALOGUE & FILTER BAR (EXCLUSIVE TO LOGGED-IN CUSTOMERS) */}
-      {!user ? (
-        <section id="catalog" className="container" style={{ paddingTop: '3.5rem', paddingBottom: '3.5rem' }}>
-          <div style={{
-            maxWidth: '820px',
-            margin: '0 auto',
-            background: 'linear-gradient(180deg, rgba(23, 23, 23, 0.95) 0%, rgba(14, 14, 14, 0.98) 100%)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 'clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 3rem)',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 107, 26, 0.1)'
-          }}>
-            {/* Top Accent Line */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '280px',
-              height: '3px',
-              background: 'linear-gradient(90deg, transparent, var(--color-primary), transparent)'
-            }} />
-
-            {/* Glowing Lock Emblem */}
-            <div style={{
-              width: '68px',
-              height: '68px',
-              margin: '0 auto 1.5rem',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 107, 26, 0.12)',
-              border: '1px solid rgba(255, 107, 26, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 30px rgba(255, 107, 26, 0.25)'
-            }}>
-              <Lock size={32} color="var(--color-primary)" strokeWidth={2.4} />
-            </div>
-
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-              <span className="badge badge-orange" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem' }}>
-                <Sparkles size={13} /> EXCLUSIVE MEMBER ACCESS ONLY
-              </span>
-            </div>
-
-            <h2 style={{
-              fontSize: 'clamp(1.9rem, 4.5vw, 2.7rem)',
-              color: '#FFFFFF',
-              textTransform: 'uppercase',
-              letterSpacing: '-0.02em',
-              marginBottom: '1rem',
-              lineHeight: 1.15
-            }}>
-              Footwear Catalogue Reserved For Members
-            </h2>
-
-            <p style={{
-              fontSize: '1.05rem',
-              color: 'var(--color-text-secondary)',
-              lineHeight: 1.65,
-              maxWidth: '560px',
-              margin: '0 auto 2.25rem'
-            }}>
-              To maintain authenticity and fair distribution of limited-edition drops, our product silhouettes, pricing, and live inventory are blocked until you sign in.
-            </p>
-
-            {/* Direct Login & Register CTAs */}
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-              <button
-                onClick={() => navigate('/login')}
-                className="btn btn-primary"
-                style={{ padding: '0.95rem 2.4rem', fontSize: '1rem', minWidth: '190px' }}
-              >
-                Sign In to Unlock
-                <ArrowRight size={18} />
-              </button>
-
-              <button
-                onClick={() => navigate('/login')}
-                className="btn btn-outline"
-                style={{ padding: '0.95rem 2.2rem', fontSize: '1rem', minWidth: '190px' }}
-              >
-                Create Free Account
-              </button>
-            </div>
-
-            {/* Member Benefits */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '1.25rem',
-              paddingTop: '2rem',
-              borderTop: '1px solid var(--color-border)',
-              textAlign: 'left'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <CheckCircle2 size={22} color="var(--color-primary)" />
-                <div>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', display: 'block' }}>100% Authentic</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Factory verified silhouettes</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Flame size={22} color="var(--color-primary)" />
-                <div>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', display: 'block' }}>VIP Drop Access</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Priority member queue</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Zap size={22} color="var(--color-primary)" />
-                <div>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', display: 'block' }}>Express Dispatch</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>24-48h rapid delivery</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : (
+      {/* 3. FOOTWEAR CATALOGUE & FILTER BAR */}
       <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
         
         {/* Search & Sorting Toolbar */}
@@ -528,18 +456,65 @@ const Home = () => {
 
           {/* Category Filter Pills */}
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', overflowX: 'auto', paddingBottom: '0.25rem', scrollbarWidth: 'none' }}>
-            {categories.map((cat) => (
+            <button
+              onClick={() => {
+                setSelectedCategory('All');
+                setIsNewArrival(false);
+              }}
+              style={{
+                padding: '0.5rem 1.1rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.85rem',
+                background: (!isNewArrival && selectedCategory === 'All') ? 'var(--color-primary)' : 'var(--color-surface)',
+                color: (!isNewArrival && selectedCategory === 'All') ? '#000000' : 'var(--color-text-secondary)',
+                border: `1px solid ${(!isNewArrival && selectedCategory === 'All') ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                fontWeight: (!isNewArrival && selectedCategory === 'All') ? 800 : 500,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s'
+              }}
+            >
+              All
+            </button>
+            <button
+              onClick={() => {
+                setIsNewArrival(true);
+                setSelectedCategory('All');
+              }}
+              style={{
+                padding: '0.5rem 1.1rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.85rem',
+                background: isNewArrival ? 'var(--color-primary)' : 'var(--color-surface)',
+                color: isNewArrival ? '#000000' : 'var(--color-text-secondary)',
+                border: `1px solid ${isNewArrival ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                fontWeight: isNewArrival ? 800 : 500,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <Zap size={14} fill={isNewArrival ? '#000' : 'var(--color-primary)'} color={isNewArrival ? '#000' : 'var(--color-primary)'} />
+              New Drops
+            </button>
+            {categories.filter(c => c !== 'All').map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setIsNewArrival(false);
+                }}
                 style={{
                   padding: '0.5rem 1.1rem',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.85rem',
-                  background: selectedCategory === cat ? 'var(--color-primary)' : 'var(--color-surface)',
-                  color: selectedCategory === cat ? '#000000' : 'var(--color-text-secondary)',
-                  border: `1px solid ${selectedCategory === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  fontWeight: selectedCategory === cat ? 800 : 500,
+                  background: (!isNewArrival && selectedCategory === cat) ? 'var(--color-primary)' : 'var(--color-surface)',
+                  color: (!isNewArrival && selectedCategory === cat) ? '#000000' : 'var(--color-text-secondary)',
+                  border: `1px solid ${(!isNewArrival && selectedCategory === cat) ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  fontWeight: (!isNewArrival && selectedCategory === cat) ? 800 : 500,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.2s'
@@ -552,16 +527,37 @@ const Home = () => {
         </div>
 
         {/* Section Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <h2 style={{ fontSize: '1.6rem', color: '#fff', textTransform: 'uppercase' }}>
-              {selectedCategory === 'All' ? 'All Footwear Silhouettes' : selectedCategory}
+              {isNewArrival ? '⚡ New Drops & Exclusive Arrivals' : selectedCategory === 'All' ? 'All Footwear Silhouettes' : selectedCategory}
               {selectedBrand && ` &bull; ${selectedBrand}`}
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
               Showing {products.length} premium products
             </p>
           </div>
+          {isNewArrival && (
+            <button
+              onClick={() => {
+                setIsNewArrival(false);
+                setSelectedCategory('All');
+                setSearchParams({});
+              }}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-full)',
+                color: 'var(--color-primary)',
+                padding: '0.4rem 0.9rem',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Clear New Drops Filter &times;
+            </button>
+          )}
         </div>
 
         {/* Products Grid */}
@@ -607,7 +603,6 @@ const Home = () => {
         )}
 
       </section>
-      )}
 
       {/* 4. REVIEWS & TESTIMONIALS */}
       <section style={{ backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', marginTop: '5rem', padding: '4rem 0' }}>

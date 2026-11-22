@@ -102,24 +102,6 @@ const Footer = () => {
               <Link to="/profile">My Account & Profile</Link>
             </div>
           </div>
-
-          <div>
-            <h4 style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#fff', marginBottom: '1.2rem' }}>VIP Drop Access</h4>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-              Subscribe to unlock early access to limited edition drops:
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="input-control" 
-                style={{ fontSize: '0.85rem', padding: '0.65rem 1rem' }} 
-              />
-              <button className="btn btn-primary" style={{ padding: '0.65rem 1.2rem' }}>
-                Join
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Bottom Copyright */}
@@ -134,7 +116,7 @@ const Footer = () => {
           fontSize: '0.8rem',
           color: 'var(--color-text-muted)'
         }}>
-          <div>&copy; 2026 AURA KICKS Inc. All rights reserved. Powered by FastAPI & Neon Engine.</div>
+          <div>&copy; 2026 AURA KICKS Inc. All rights reserved. Precision Craftsmanship &bull; 100% Authentic Luxury Footwear.</div>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             <span>Privacy Policy</span>
             <span>Terms of Service</span>
