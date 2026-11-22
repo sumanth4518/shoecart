@@ -41,8 +41,23 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleNavClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login');
+      return;
+    }
+    if (location.pathname === '/') {
+      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -90,11 +105,7 @@ const Navbar = () => {
         <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '1.8rem' }}>
           <Link 
             to="/?category=All" 
-            onClick={() => {
-              if (location.pathname === '/') {
-                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={handleNavClick}
             style={{ 
               fontSize: '0.95rem', 
               fontWeight: (location.pathname === '/' && (!currentCategory || currentCategory === 'All') && !isNewArrivalActive) ? 700 : 500, 
@@ -107,11 +118,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/?category=Sneakers" 
-            onClick={() => {
-              if (location.pathname === '/') {
-                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={handleNavClick}
             style={{ 
               fontSize: '0.95rem', 
               fontWeight: currentCategory === 'Sneakers' ? 700 : 500, 
@@ -124,11 +131,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/?category=Running+Shoes" 
-            onClick={() => {
-              if (location.pathname === '/') {
-                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={handleNavClick}
             style={{ 
               fontSize: '0.95rem', 
               fontWeight: (currentCategory === 'Running Shoes' || currentCategory === 'Running') ? 700 : 500, 
@@ -141,11 +144,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/?is_new_arrival=true" 
-            onClick={() => {
-              if (location.pathname === '/') {
-                document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={handleNavClick}
             style={{ 
               fontSize: '0.95rem', 
               fontWeight: isNewArrivalActive ? 700 : 500, 

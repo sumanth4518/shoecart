@@ -8,16 +8,29 @@ const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems } = useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.auth);
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleSearchClick = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setIsSearchOpen(true);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setIsSearchOpen(false);
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (searchQuery.trim()) {
-      setIsSearchOpen(false);
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -54,7 +67,7 @@ const BottomNav = () => {
 
         {/* 2. SEARCH */}
         <button
-          onClick={() => setIsSearchOpen(true)}
+          onClick={handleSearchClick}
           className={`bottom-nav-item ${isSearchOpen ? 'active' : ''}`}
           aria-label="Search"
           style={{ background: 'none', border: 'none', cursor: 'pointer' }}
