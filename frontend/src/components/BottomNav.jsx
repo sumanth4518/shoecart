@@ -9,6 +9,7 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const { cartItems } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+  const isAuthenticated = Boolean(user && (user.token || user.access_token));
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -16,7 +17,7 @@ const BottomNav = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchClick = () => {
-    if (!user) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }
@@ -26,7 +27,7 @@ const BottomNav = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setIsSearchOpen(false);
-    if (!user) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }

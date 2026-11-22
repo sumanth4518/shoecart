@@ -19,6 +19,7 @@ const Navbar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const isAuthenticated = Boolean(user && (user.token || user.access_token));
   const { cartItems } = useSelector((state) => state.cart);
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
 
@@ -41,7 +42,7 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!user) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }
@@ -51,7 +52,7 @@ const Navbar = () => {
   };
 
   const handleNavClick = (e) => {
-    if (!user) {
+    if (!isAuthenticated) {
       e.preventDefault();
       navigate('/login');
       return;
@@ -239,7 +240,7 @@ const Navbar = () => {
           </Link>
 
           {/* User Account / Profile */}
-          {user ? (
+          {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <Link 
                 to="/profile" 

@@ -34,7 +34,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker-entrypoint.sh /docker-entrypoint.d/40-generate-env-config.sh
 RUN sed -i 's/\r$//' /docker-entrypoint.d/40-generate-env-config.sh && chmod +x /docker-entrypoint.d/40-generate-env-config.sh
 
-EXPOSE 80 10000
+EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1

@@ -24,6 +24,7 @@ const Home = () => {
 
   const { products, isLoading, isError, message } = useSelector((state) => state.products);
   const { user } = useSelector((state) => state.auth);
+  const isAuthenticated = Boolean(user && (user.token || user.access_token));
 
   const initialSearch = searchParams.get('search') || '';
   const initialCategory = searchParams.get('category') || 'All';
@@ -79,7 +80,7 @@ const Home = () => {
 
   // Query products ONLY when user is logged in
   useEffect(() => {
-    if (!user) return; // Strict gate: Zero products queried when visitor is not logged in
+    if (!isAuthenticated) return; // Strict gate: Zero products queried when visitor is not logged in
 
     const timer = setTimeout(() => {
       dispatch(getProducts({
@@ -93,7 +94,7 @@ const Home = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [user, searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, isNewArrival, dispatch]);
+  }, [isAuthenticated, searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, isNewArrival, dispatch]);
 
   const categories = [
     'All',
@@ -138,7 +139,7 @@ const Home = () => {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
               <button
                 onClick={() => {
-                  if (!user) {
+                  if (!isAuthenticated) {
                     navigate('/login');
                   } else {
                     setIsNewArrival(true);
@@ -186,7 +187,7 @@ const Home = () => {
             <div className="hero-cta-group" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <button 
                 onClick={() => {
-                  if (!user) {
+                  if (!isAuthenticated) {
                     navigate('/login');
                   } else {
                     const el = document.getElementById('catalog');
@@ -196,13 +197,13 @@ const Home = () => {
                 className="btn btn-primary"
                 style={{ padding: '0.9rem 2rem', fontSize: '1rem', cursor: 'pointer' }}
               >
-                {user ? 'Shop Footwear' : 'Sign In to View Shoes'}
+                {isAuthenticated ? 'Shop Footwear' : 'Sign In to View Shoes'}
                 <ArrowRight size={18} />
               </button>
 
               <button
                 onClick={() => {
-                  if (!user) {
+                  if (!isAuthenticated) {
                     navigate('/login');
                   } else {
                     setSelectedCategory('Sneakers');
@@ -214,7 +215,7 @@ const Home = () => {
                 className="btn btn-outline"
                 style={{ padding: '0.9rem 1.8rem', fontSize: '1rem', cursor: 'pointer' }}
               >
-                {user ? 'Explore Sneakers' : 'Create Free Account'}
+                {isAuthenticated ? 'Explore Sneakers' : 'Create Free Account'}
               </button>
             </div>
 
@@ -239,7 +240,7 @@ const Home = () => {
           <div className="hero-visual">
             <div className="hero-glow-circle" />
 
-            {user ? (
+            {isAuthenticated ? (
               <>
                 <img
                   src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=85"
@@ -448,7 +449,7 @@ const Home = () => {
               <button
                 key={b}
                 onClick={() => {
-                  if (!user) {
+                  if (!isAuthenticated) {
                     navigate('/login');
                   } else {
                     setSelectedBrand(selectedBrand === b ? '' : b);
@@ -477,7 +478,7 @@ const Home = () => {
       {/* 3. FOOTWEAR CATALOGUE & FILTER BAR */}
       <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
         
-        {!user ? (
+        {!isAuthenticated ? (
           /* STRICT MEMBERS-ONLY GATE: ZERO SHOES DISPLAYED BEFORE LOGIN */
           <div className="luxury-card member-gate-card" style={{
             textAlign: 'center',
@@ -839,7 +840,7 @@ const Home = () => {
                 </p>
                 <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff' }}>{rev.name}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>{user ? rev.shoe : "Verified Member"}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>{isAuthenticated ? rev.shoe : "Verified Member"}</span>
                 </div>
               </div>
             ))}

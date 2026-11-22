@@ -1,10 +1,25 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const user = JSON.parse(localStorage.getItem('user'));
+// Validate and load user session strictly if a valid authentication token exists
+const loadStoredUser = () => {
+  try {
+    const rawUser = localStorage.getItem('user');
+    if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+      const parsed = JSON.parse(rawUser);
+      if (parsed && (parsed.token || parsed.access_token)) {
+        return parsed;
+      }
+      localStorage.removeItem('user');
+    }
+  } catch (e) {
+    localStorage.removeItem('user');
+  }
+  return null;
+};
 
 const initialState = {
-  user: user || null,
+  user: loadStoredUser(),
   isError: false,
   isSuccess: false,
   isLoading: false,
