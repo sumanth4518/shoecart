@@ -138,10 +138,14 @@ const Home = () => {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
               <button
                 onClick={() => {
-                  setIsNewArrival(true);
-                  setSelectedCategory('All');
-                  const el = document.getElementById('catalog');
-                  el?.scrollIntoView({ behavior: 'smooth' });
+                  if (!user) {
+                    navigate('/login');
+                  } else {
+                    setIsNewArrival(true);
+                    setSelectedCategory('All');
+                    const el = document.getElementById('catalog');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="badge badge-orange"
                 style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', border: 'none', background: 'rgba(255, 107, 26, 0.15)', color: 'var(--color-primary)' }}
@@ -235,24 +239,79 @@ const Home = () => {
           <div className="hero-visual">
             <div className="hero-glow-circle" />
 
-            <img
-              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=85"
-              alt="Nike Air Max Pulse Hero"
-              className="hero-floating-sneaker"
-            />
+            {user ? (
+              <>
+                <img
+                  src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&q=85"
+                  alt="Nike Air Max Pulse Hero"
+                  className="hero-floating-sneaker"
+                />
 
-            {/* Floating Card Accent */}
-            <div className="hero-floating-badge">
-              <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {user ? 'Featured Silhouette' : 'Members Only'}
-              </span>
-              <h5 style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 700, margin: '2px 0' }}>
-                {user ? 'Nike Air Max Pulse' : 'Aura Kicks Vault'}
-              </h5>
-              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                {user ? '₹11,495' : '330+ Silhouettes'}
-              </span>
-            </div>
+                {/* Floating Card Accent */}
+                <div className="hero-floating-badge">
+                  <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Featured Silhouette
+                  </span>
+                  <h5 style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 700, margin: '2px 0' }}>
+                    Nike Air Max Pulse
+                  </h5>
+                  <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                    ₹11,495
+                  </span>
+                </div>
+              </>
+            ) : (
+              /* GUEST: ZERO SHOES DISPLAYED IN HERO. LUXURY LOCKED VAULT EMBLEM */
+              <div style={{
+                position: 'relative',
+                zIndex: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                padding: '3rem 2rem',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'rgba(23, 23, 23, 0.92)',
+                border: '1px solid rgba(255, 107, 26, 0.4)',
+                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.85), 0 0 40px var(--color-primary-glow)',
+                maxWidth: '420px',
+                width: '100%'
+              }}>
+                <div style={{
+                  width: '84px',
+                  height: '84px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255, 107, 26, 0.3) 0%, rgba(255, 107, 26, 0.05) 70%)',
+                  border: '2px solid var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--color-primary)',
+                  marginBottom: '1.25rem',
+                  boxShadow: '0 0 35px var(--color-primary-glow)'
+                }}>
+                  <Lock size={42} strokeWidth={2.2} />
+                </div>
+                <span className="badge badge-orange" style={{ marginBottom: '0.75rem', fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}>
+                  MEMBERS-ONLY VAULT
+                </span>
+                <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+                  Catalogue Locked
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: '1.5', margin: '0 0 1.5rem 0' }}>
+                  All silhouettes, pricing, and live inventory are private. Sign in to view shoes.
+                </p>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '0.85rem', fontSize: '0.92rem', fontWeight: 800 }}
+                >
+                  Sign In to Access Shoes
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
@@ -780,7 +839,7 @@ const Home = () => {
                 </p>
                 <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff' }}>{rev.name}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>{rev.shoe}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>{user ? rev.shoe : "Verified Member"}</span>
                 </div>
               </div>
             ))}
