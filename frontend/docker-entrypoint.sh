@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# If a custom PORT environment variable is provided by Render (and not already 80 or 10000), configure Nginx to listen on it
+if [ -n "$PORT" ] && [ "$PORT" != "80" ] && [ "$PORT" != "10000" ]; then
+  sed -i "s/listen 80;/listen 80;\n    listen $PORT;/g" /etc/nginx/conf.d/default.conf
+fi
+
 # Dynamically generate runtime environment configuration for the Storefront React SPA
 cat <<EOF > /usr/share/nginx/html/env-config.js
 window.__ENV__ = {
