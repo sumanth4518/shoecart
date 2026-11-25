@@ -17,20 +17,12 @@ const BottomNav = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchClick = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     setIsSearchOpen(true);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setIsSearchOpen(false);
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
     }

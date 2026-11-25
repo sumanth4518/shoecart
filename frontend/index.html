@@ -13,6 +13,16 @@
   <body style="background-color: #090909; margin: 0; padding: 0;">
     <div id="root"></div>
     <script src="/env-config.js"></script>
+    <script>
+      (function() {
+        try {
+          var apiUrl = (window.__ENV__ && window.__ENV__.VITE_API_URL) || 'https://aura-kicks-backend.onrender.com';
+          var cleanUrl = apiUrl.replace(/\/+$/, '') + '/api/health';
+          // Instant hidden warmup ping to wake up sleeping Render backend on free tier
+          fetch(cleanUrl, { method: 'GET', mode: 'cors', cache: 'no-store' }).catch(function(){});
+        } catch(e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

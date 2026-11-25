@@ -1,29 +1,36 @@
 import os
+import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 # Import all models to ensure they are registered on Base.metadata
 import app.models.entities
+from app.models.entities import Product
 from app.core.config import settings
-from app.database.session import engine, Base
+from app.database.session import engine, Base, SessionLocal, get_db
 from app.api.v1.router import api_router
 from app.database.seed_data import run_seed
 
-# Ensure all tables and seed exist
-try:
-    Base.metadata.create_all(bind=engine)
-    run_seed()
-except Exception as e:
-    print(f"Startup notice: {e}")
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Fast, resilient startup lifespan for serverless and free-tier environments."""
     try:
-        Base.metadata.create_all(bind=engine)
-        run_seed()
+        db = SessionLocal()
+        # Fast non-blocking check: only seed if the product catalog is completely empty
+        has_products = db.query(Product.id).first() is not None
+        db.close()
+        if not has_products:
+            print("[Lifespan] Initializing database schema and seed data...")
+            Base.metadata.create_all(bind=engine)
+            run_seed()
+            print("[Lifespan] Database initialization complete.")
+        else:
+            print("[Lifespan] Database is already initialized and seeded with products.")
     except Exception as e:
-        print(f"Startup notice in lifespan: {e}")
+        print(f"[Lifespan Notice] DB check: {e}")
     yield
 
 app = FastAPI(
@@ -87,10 +94,27 @@ async def serve_upload_file(file_path: str):
 # Mount API V1 router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/api/health", tags=["Health"])
-def health_check():
-    """Health check endpoint matching previous Express contract."""
-    return {"status": "ok", "message": "FastAPI Footwear Engine is running"}
+@app.api_route("/", methods=["GET", "HEAD"], tags=["Health"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Health"])
+@app.api_route("/api/health", methods=["GET", "HEAD"], tags=["Health"])
+@app.api_route("/api/warmup", methods=["GET", "HEAD"], tags=["Health"])
+def health_check(db: Session = Depends(get_db)):
+    """Fast warmup and health check endpoint to wake up serverless & free-tier cloud containers."""
+    db_status = "idle"
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception:
+        pass
+
+    return {
+        "status": "ok",
+        "service": "aura-kicks-backend",
+        "database": db_status,
+        "warm": True,
+        "message": "FastAPI Footwear Engine is running",
+        "timestamp": time.time()
+    }
 
 if __name__ == "__main__":
     import uvicorn

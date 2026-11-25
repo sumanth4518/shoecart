@@ -42,23 +42,17 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearch(false);
     }
   };
 
-  const handleNavClick = (e) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      navigate('/login');
-      return;
-    }
+  const handleNavClick = () => {
     if (location.pathname === '/') {
-      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     }
   };
 

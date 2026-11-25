@@ -20,6 +20,20 @@ if (resolvedApiUrl) {
   axios.defaults.baseURL = resolvedApiUrl.replace(/\/+$/, '');
 }
 
+// Hidden background warmup ping to wake up sleeping Render backend and keep it warm
+const wakeUpBackend = () => {
+  const target = axios.defaults.baseURL || 'https://aura-kicks-backend.onrender.com';
+  const ping = () => {
+    fetch(`${target}/api/health`, { method: 'GET', mode: 'cors', cache: 'no-store' })
+      .catch(() => {});
+  };
+  ping();
+  // Ping every 8 minutes while tab is open to prevent Render free-tier sleep (sleep timeout is 15 min)
+  setInterval(ping, 8 * 60 * 1000);
+};
+
+wakeUpBackend();
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>

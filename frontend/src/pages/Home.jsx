@@ -78,10 +78,8 @@ const Home = () => {
     }
   }, [searchParams]);
 
-  // Query products ONLY when user is logged in
+  // Query products on mount and whenever any filter changes
   useEffect(() => {
-    if (!isAuthenticated) return; // Strict gate: Zero products queried when visitor is not logged in
-
     const timer = setTimeout(() => {
       dispatch(getProducts({
         search: searchTerm,
@@ -94,7 +92,7 @@ const Home = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [isAuthenticated, searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, isNewArrival, dispatch]);
+  }, [searchTerm, selectedCategory, selectedBrand, selectedSize, sortBy, isNewArrival, dispatch]);
 
   const categories = [
     'All',
@@ -394,11 +392,9 @@ const Home = () => {
               <button
                 key={b}
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    navigate('/login');
-                  } else {
-                    setSelectedBrand(selectedBrand === b ? '' : b);
-                  }
+                  setSelectedBrand(selectedBrand === b ? '' : b);
+                  const el = document.getElementById('catalog');
+                  el?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 style={{
                   background: selectedBrand === b ? 'var(--color-primary)' : 'var(--color-card)',
@@ -423,96 +419,52 @@ const Home = () => {
       {/* 3. FOOTWEAR CATALOGUE & FILTER BAR */}
       <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
         
-        {!isAuthenticated ? (
-          /* UNREGISTERED / GUEST LANDING SHOWCASE: ZERO WEIRD LOCK CARDS */
-          <div style={{ padding: '2rem 0', marginBottom: '3rem' }}>
-            <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 3rem' }}>
-              <span className="badge badge-orange" style={{ marginBottom: '0.75rem' }}>THE AURA STANDARD</span>
-              <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-                Engineered For Athletes. Curated For Collectors.
-              </h2>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>
-                From court-ready performance to limited-run street silhouettes, every pair in our archive is authenticated through a multi-point verification process.
-              </p>
+        {/* AURA Standard Trust Pillars */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '1.25rem',
+          marginBottom: '2.5rem'
+        }}>
+          <div className="luxury-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255, 107, 26, 0.12)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ShieldCheck size={22} />
             </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1.75rem'
-            }}>
-              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 107, 26, 0.12)',
-                  color: 'var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.25rem'
-                }}>
-                  <ShieldCheck size={28} />
-                </div>
-                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>100% Verified Authentic</h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  Every silhouette undergoes rigorous inspection by certified specialists before receiving the AURA authenticity seal.
-                </p>
-              </div>
-
-              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 107, 26, 0.12)',
-                  color: 'var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.25rem'
-                }}>
-                  <Zap size={28} />
-                </div>
-                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>Express 24-48h Dispatch</h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  Direct express dispatch from our climate-controlled fulfillment centers with real-time SMS and email tracking.
-                </p>
-              </div>
-
-              <div className="luxury-card" style={{ padding: '2rem', textAlign: 'center' }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 107, 26, 0.12)',
-                  color: 'var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.25rem'
-                }}>
-                  <CheckCircle2 size={28} />
-                </div>
-                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>Precision Fit Guarantee</h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  Live UK sizing stock with dedicated customer support and 7-day hassle-free size exchange guarantee.
-                </p>
-              </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 2px 0', fontWeight: 700 }}>100% Verified Authentic</h4>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', margin: 0 }}>Multi-point verification by sneaker specialists.</p>
             </div>
           </div>
-        ) : (
-          /* USER LOGGED IN: DISPLAY FILTERS & COMPLETE 330+ PRODUCT GRID */
-          <>
-            {/* Search & Sorting Toolbar */}
-            <div style={{
-              backgroundColor: 'var(--color-card)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1.25rem',
-              marginBottom: '2rem'
-            }}>
+
+          <div className="luxury-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255, 107, 26, 0.12)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Zap size={22} />
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 2px 0', fontWeight: 700 }}>Express 24-48h Dispatch</h4>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', margin: 0 }}>Climate-controlled archive with real-time tracking.</p>
+            </div>
+          </div>
+
+          <div className="luxury-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255, 107, 26, 0.12)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle2 size={22} />
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 2px 0', fontWeight: 700 }}>Precision Fit Guarantee</h4>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', margin: 0 }}>Live UK sizing with 7-day hassle-free exchange.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Sorting Toolbar */}
+        <div style={{
+          backgroundColor: 'var(--color-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1.25rem',
+          marginBottom: '2rem'
+        }}>
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                 
                 {/* Search Input */}
@@ -676,16 +628,22 @@ const Home = () => {
 
             {/* Products Grid */}
             {isLoading ? (
-              <div className="grid-catalog">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="skeleton" style={{ height: '360px', borderRadius: 'var(--radius-lg)' }} />
-                ))}
+              <div>
+                <div style={{ textAlign: 'center', marginBottom: '1.25rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.88rem' }}>
+                  <Zap size={16} />
+                  <span>Loading footwear catalogue & live sizing inventory...</span>
+                </div>
+                <div className="grid-catalog">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                    <div key={i} className="skeleton" style={{ height: '360px', borderRadius: 'var(--radius-lg)' }} />
+                  ))}
+                </div>
               </div>
             ) : isError ? (
               <div style={{ textAlign: 'center', padding: '4rem 1rem', backgroundColor: 'var(--color-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-                <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Unable to load catalogue</h4>
-                <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-                  {message === 'Network Error' ? 'Connecting to AURA KICKS secure catalog servers...' : message}
+                <h4 style={{ color: '#fff', marginBottom: '0.75rem' }}>Cloud Server Waking Up</h4>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.6' }}>
+                  Our cloud backend is spinning up from idle standby. Click below to refresh the catalogue and view all models.
                 </p>
                 <button
                   onClick={() => dispatch(getProducts({
@@ -698,7 +656,7 @@ const Home = () => {
                   }))}
                   className="btn btn-primary"
                 >
-                  Reload Footwear
+                  Refresh Catalogue
                 </button>
               </div>
             ) : products.length === 0 ? (
@@ -730,8 +688,6 @@ const Home = () => {
                 ))}
               </div>
             )}
-          </>
-        )}
 
       </section>
 

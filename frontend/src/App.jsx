@@ -32,6 +32,14 @@ const AdminPortalRedirect = () => {
 };
 
 function App() {
+  // Silent hidden wake-up ping to ensure backend is warm on serverless / Render free tier
+  useEffect(() => {
+    const warmup = () => {
+      fetch('/api/health', { method: 'GET', keepalive: true, cache: 'no-store' }).catch(() => {});
+    };
+    warmup();
+  }, []);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
       <Navbar />

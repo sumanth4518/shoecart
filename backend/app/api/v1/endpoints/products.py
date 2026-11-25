@@ -24,8 +24,8 @@ def invalidate_catalog_cache():
 def get_product_eager_options():
     """Returns standardized SQLAlchemy eager loading options to prevent N+1 query explosion."""
     return [
-        joinedload(Product.category),
-        joinedload(Product.brand),
+        selectinload(Product.category),
+        selectinload(Product.brand),
         selectinload(Product.images),
         selectinload(Product.videos),
         selectinload(Product.variants).joinedload(ProductVariant.inventory)
@@ -233,7 +233,7 @@ def get_products(
             query = query.order_by(asc(Product.name))
         else:
             query = query.order_by(desc(Product.created_at))
-        products = query.all()
+        products = query.distinct().all()
 
     result = [serialize_product(p) for p in products]
     _catalog_cache[cache_key] = (result, now + _CACHE_TTL)

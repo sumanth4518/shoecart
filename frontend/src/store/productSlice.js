@@ -13,37 +13,58 @@ const initialState = {
 export const getProducts = createAsyncThunk(
   'products/getAll',
   async (filters = {}, thunkAPI) => {
-    try {
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search.trim());
-      if (filters.category && filters.category !== 'All') params.append('category', filters.category.trim());
-      if (filters.brand) params.append('brand', filters.brand.trim());
-      if (filters.size) params.append('size', filters.size.trim());
-      if (filters.min_price) params.append('min_price', filters.min_price);
-      if (filters.max_price) params.append('max_price', filters.max_price);
-      if (filters.sort_by) params.append('sort_by', filters.sort_by);
-      if (filters.is_featured) params.append('is_featured', 'true');
-      if (filters.is_trending) params.append('is_trending', 'true');
-      if (filters.is_new_arrival) params.append('is_new_arrival', 'true');
+    const params = new URLSearchParams();
+    if (filters.search) params.append('search', filters.search.trim());
+    if (filters.category && filters.category !== 'All') params.append('category', filters.category.trim());
+    if (filters.brand) params.append('brand', filters.brand.trim());
+    if (filters.size) params.append('size', filters.size.trim());
+    if (filters.min_price) params.append('min_price', filters.min_price);
+    if (filters.max_price) params.append('max_price', filters.max_price);
+    if (filters.sort_by) params.append('sort_by', filters.sort_by);
+    if (filters.is_featured) params.append('is_featured', 'true');
+    if (filters.is_trending) params.append('is_trending', 'true');
+    if (filters.is_new_arrival) params.append('is_new_arrival', 'true');
 
-      const response = await axios.get(`/api/products?${params.toString()}`, {
-        signal: thunkAPI.signal,
-        timeout: 15000
-      });
-      return response.data;
-    } catch (error) {
-      if (axios.isCancel(error) || error.name === 'CanceledError') {
-        return thunkAPI.rejectWithValue('ABORTED');
+    const url = `/api/products?${params.toString()}`;
+    const maxRetries = 2; // Up to 3 attempts total for waking serverless instances
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await axios.get(url, {
+          signal: thunkAPI.signal,
+          timeout: 45000 // 45s allows waking Render free-tier containers
+        });
+        return response.data;
+      } catch (error) {
+        if (axios.isCancel(error) || error.name === 'CanceledError') {
+          return thunkAPI.rejectWithValue('ABORTED');
+        }
+
+        // Check if server is waking up (Render 502/503/504 or network timeout)
+        const isServerWaking = !error.response || 
+          error.response.status >= 500 || 
+          error.code === 'ECONNABORTED' || 
+          error.message?.includes('timeout') || 
+          error.message?.includes('Network Error');
+
+        if (attempt < maxRetries && isServerWaking && !thunkAPI.signal.aborted) {
+          // Pause 2 seconds before retry to give container time to finish booting
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+
+        const message = error.response?.data?.detail || error.message || 'Error fetching products';
+        return thunkAPI.rejectWithValue(message);
       }
-      const message = error.response?.data?.detail || error.message || 'Error fetching products';
-      return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
 export const getProduct = createAsyncThunk('products/getOne', async (id, thunkAPI) => {
   try {
-    const response = await axios.get(`/api/products/${id}`);
+    const response = await axios.get(`/api/products/${id}`, {
+      timeout: 45000
+    });
     return response.data;
   } catch (error) {
     const message = error.response?.data?.detail || error.message;
