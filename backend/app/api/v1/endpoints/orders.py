@@ -203,15 +203,22 @@ def create_order(
     try:
         from app.services.invoice_service import invoice_service
         from app.services.email_service import email_service
+        
+        # Eagerly load full order with items and user details for complete invoice PDF
+        full_order = db.query(Order).options(
+            joinedload(Order.user),
+            selectinload(Order.items).joinedload(OrderItem.variant).joinedload(ProductVariant.product)
+        ).filter(Order.id == new_order.id).first() or new_order
+
         pdf_bytes = invoice_service.generate_invoice_pdf(
-            order=new_order,
+            order=full_order,
             recipient_name=current_user.full_name,
             recipient_email=current_user.email
         )
         email_service.dispatch_order_invoice_background(
             to_email=current_user.email,
             recipient_name=current_user.full_name,
-            order=new_order,
+            order=full_order,
             pdf_bytes=pdf_bytes
         )
     except Exception as exc:

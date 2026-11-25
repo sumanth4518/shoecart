@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
@@ -12,7 +12,9 @@ import {
   Star, 
   Zap,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { getProducts } from '../store/productSlice';
 import ProductCard from '../components/ProductCard';
@@ -39,6 +41,20 @@ const Home = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [isNewArrival, setIsNewArrival] = useState(initialNewArrival);
+
+  const carouselRef = useRef(null);
+
+  const scrollCarousel = (direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -280 : 280;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const trendingDrops = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    return products.slice(0, 14);
+  }, [products]);
 
   // Dynamically sync state with URL query parameters
   useEffect(() => {
@@ -416,8 +432,56 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 3. FOOTWEAR CATALOGUE & FILTER BAR */}
-      <section id="catalog" className="container" style={{ paddingTop: '3rem' }}>
+      {/* 3. HORIZONTAL SWIPEABLE SNEAKER CAROUSEL (MOVE CARDS RIGHT) */}
+      {trendingDrops.length > 0 && (
+        <section className="container" style={{ paddingTop: '2.5rem', paddingBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                <Flame size={20} color="var(--color-primary)" />
+                <h3 style={{ fontSize: '1.35rem', textTransform: 'uppercase', color: '#fff', letterSpacing: '-0.02em', margin: 0, fontWeight: 800 }}>
+                  High-Heat Drops & Trending
+                </h3>
+              </div>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.84rem', margin: 0 }}>
+                Swipe or scroll right to discover limited-edition heat & member favorites &rarr;
+              </p>
+            </div>
+
+            {/* Carousel Arrow Controls */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                onClick={() => scrollCarousel('left')}
+                className="carousel-arrow-btn"
+                aria-label="Scroll left"
+                title="Scroll Left"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => scrollCarousel('right')}
+                className="carousel-arrow-btn"
+                aria-label="Scroll right"
+                title="Scroll Right"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Swipeable Track */}
+          <div ref={carouselRef} className="carousel-track">
+            {trendingDrops.map((product) => (
+              <div key={`carousel-${product.id}`} className="carousel-slide">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 4. FOOTWEAR CATALOGUE & FILTER BAR */}
+      <section id="catalog" className="container" style={{ paddingTop: '2rem' }}>
         
         {/* AURA Standard Trust Pillars */}
         <div style={{

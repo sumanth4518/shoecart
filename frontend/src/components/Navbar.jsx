@@ -60,7 +60,7 @@ const Navbar = () => {
 
   return (
     <header style={{
-      backgroundColor: 'rgba(9, 9, 9, 0.92)',
+      backgroundColor: 'rgba(8, 10, 15, 0.94)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--color-border)',

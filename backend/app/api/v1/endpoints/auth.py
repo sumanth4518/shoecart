@@ -246,3 +246,39 @@ def get_my_profile(current_user: User = Depends(get_current_user), db: Session =
         "is_email_verified": current_user.is_email_verified,
         "created_at": current_user.created_at
     }
+
+from pydantic import BaseModel
+from typing import Optional
+
+class ProfileUpdatePayload(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    profile_image_url: Optional[str] = None
+
+@router.put("/me")
+def update_my_profile(
+    payload: ProfileUpdatePayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Updates authenticated user's name and contact phone number."""
+    if payload.name is not None and payload.name.strip():
+        current_user.full_name = payload.name.strip()
+    if payload.phone_number is not None:
+        current_user.phone_number = payload.phone_number.strip()
+    if payload.profile_image_url is not None:
+        current_user.profile_image_url = payload.profile_image_url.strip()
+
+    db.commit()
+    db.refresh(current_user)
+
+    role = db.query(Role).filter(Role.id == current_user.role_id).first()
+    return {
+        "id": current_user.id,
+        "name": current_user.full_name,
+        "email": current_user.email,
+        "phone_number": current_user.phone_number,
+        "role": role.name if role else "customer",
+        "profile_image_url": current_user.profile_image_url,
+        "message": "Profile updated successfully"
+    }

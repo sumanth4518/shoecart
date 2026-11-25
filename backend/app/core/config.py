@@ -70,11 +70,11 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     # Email / OTP
-    EMAIL_HOST: str = "smtp.gmail.com"
-    EMAIL_PORT: int = 587
-    EMAIL_USER: str = ""
-    EMAIL_PASSWORD: str = ""
-    EMAIL_FROM: str = ""
+    EMAIL_HOST: str = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT: int = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USER: str = os.getenv("EMAIL_USER", "sumanthguttireddy@gmail.com")
+    EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "qrgynzezrlchwzbn")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "sumanthguttireddy@gmail.com")
     OTP_EXPIRY_MINUTES: int = 10
     OTP_COOLDOWN_SECONDS: int = 60
 

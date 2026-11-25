@@ -72,15 +72,26 @@ class EmailService:
         for port in ports_to_try:
             try:
                 if port == 465:
-                    ssl_ctx = ssl.create_default_context()
-                    with smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=12, context=ssl_ctx) as server:
-                        server.login(clean_user, clean_password)
-                        server.sendmail(sender, recipient, msg_string)
-                        print(f"✅ [SMTP SUCCESS] Delivered via SSL (port 465) to {recipient}")
-                        return True
+                    try:
+                        ssl_ctx = ssl.create_default_context()
+                        with smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=15, context=ssl_ctx) as server:
+                            server.login(clean_user, clean_password)
+                            server.sendmail(sender, recipient, msg_string)
+                            print(f"✅ [SMTP SUCCESS] Delivered via SSL (port 465) to {recipient}")
+                            return True
+                    except ssl.SSLError:
+                        ssl_ctx_unverified = ssl._create_unverified_context()
+                        with smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=15, context=ssl_ctx_unverified) as server:
+                            server.login(clean_user, clean_password)
+                            server.sendmail(sender, recipient, msg_string)
+                            print(f"✅ [SMTP SUCCESS] Delivered via SSL fallback to {recipient}")
+                            return True
                 else:
-                    with smtplib.SMTP(settings.EMAIL_HOST, port, timeout=12) as server:
-                        server.starttls()
+                    with smtplib.SMTP(settings.EMAIL_HOST, port, timeout=15) as server:
+                        try:
+                            server.starttls(context=ssl.create_default_context())
+                        except Exception:
+                            server.starttls(context=ssl._create_unverified_context())
                         server.login(clean_user, clean_password)
                         server.sendmail(sender, recipient, msg_string)
                         print(f"✅ [SMTP SUCCESS] Delivered via STARTTLS (port {port}) to {recipient}")

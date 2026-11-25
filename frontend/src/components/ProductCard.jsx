@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Heart, ShoppingBag, Eye, Zap } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { addToCart } from '../store/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../store/wishlistSlice';
@@ -51,7 +51,7 @@ const ProductCard = ({ product }) => {
       size: selectedSize, 
       quantity: 1 
     }));
-    toast.success(`Added ${product.name} (${selectedSize}) to cart!`);
+    toast.success(`Added ${product.name} (${selectedSize}) to bag!`);
   };
 
   const currentPrice = product.price || product.base_price;
@@ -67,73 +67,68 @@ const ProductCard = ({ product }) => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '1.1rem',
-        borderRadius: 'var(--radius-lg)',
-        position: 'relative',
         cursor: 'pointer',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        height: '100%'
       }}
       onClick={() => navigate(`/product/${product.id}`)}
     >
-      {/* Top Bar Badges */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', zIndex: 2 }}>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+      {/* Top Header: Badges & Wishlist */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
           {discountPercent > 0 && (
-            <span className="badge badge-orange">
+            <span className="badge badge-orange" style={{ fontSize: '0.68rem', padding: '0.15rem 0.45rem' }}>
               -{discountPercent}%
             </span>
           )}
           {product.is_new_arrival && (
-            <span className="badge" style={{ backgroundColor: '#262626', color: '#fff', border: '1px solid #404040' }}>
-              NEW
+            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.65rem', padding: '0.15rem 0.45rem' }}>
+              DROP
             </span>
           )}
         </div>
 
-        {/* Wishlist Toggle Button */}
+        {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
           aria-label="Wishlist"
           style={{
-            background: isWishlisted ? 'rgba(255, 107, 26, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+            background: isWishlisted ? 'rgba(255, 107, 26, 0.18)' : 'rgba(255, 255, 255, 0.05)',
             border: `1px solid ${isWishlisted ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.1)'}`,
             borderRadius: '50%',
-            width: '36px',
-            height: '36px',
+            width: '32px',
+            height: '32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'transform 0.2s, background 0.2s'
+            transition: 'transform 0.2s, background 0.2s',
+            flexShrink: 0
           }}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.12)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           <Heart 
-            size={18} 
-            color={isWishlisted ? 'var(--color-primary)' : '#A3A3A3'} 
+            size={16} 
+            color={isWishlisted ? 'var(--color-primary)' : '#9CA3AF'} 
             fill={isWishlisted ? 'var(--color-primary)' : 'none'} 
           />
         </button>
       </div>
 
-      {/* Sneaker Image Container with Hover Zoom */}
-      <div style={{
-        height: '210px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        margin: '0.5rem 0 1rem 0'
-      }}>
-        {/* Soft Ambient Radial Light behind Shoe */}
+      {/* Sneaker Image Container with Hover Micro-Motion */}
+      <div className="product-img-box">
+        {/* Soft Radial Ambient Aura */}
         <div style={{
           position: 'absolute',
-          width: '160px',
-          height: '160px',
-          background: isHovered ? 'radial-gradient(circle, rgba(255,107,26,0.18) 0%, rgba(9,9,9,0) 70%)' : 'radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(9,9,9,0) 70%)',
+          width: '130px',
+          height: '130px',
+          background: isHovered 
+            ? 'radial-gradient(circle, rgba(255,107,26,0.22) 0%, rgba(8,10,15,0) 70%)' 
+            : 'radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(8,10,15,0) 70%)',
           borderRadius: '50%',
-          transition: 'all 0.4s ease'
+          transition: 'all 0.35s ease',
+          pointerEvents: 'none'
         }} />
 
         <img
@@ -148,52 +143,53 @@ const ProductCard = ({ product }) => {
             maxHeight: '100%',
             maxWidth: '100%',
             objectFit: 'contain',
-            transform: isHovered ? 'scale(1.08) rotate(-4deg)' : 'scale(1) rotate(0deg)',
-            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.7))'
+            transform: isHovered ? 'scale(1.06) rotate(-3deg)' : 'scale(1) rotate(0deg)',
+            transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+            filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.75))'
           }}
         />
       </div>
 
-      {/* Meta Information */}
+      {/* Meta Information & Pricing */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {product.brand || "AURA"}
           </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            {product.category || "Footwear"}
+          <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>
+            {product.category || "Sneakers"}
           </span>
         </div>
 
         <h4 style={{
-          fontSize: '0.95rem',
+          fontSize: '0.86rem',
           fontWeight: 600,
-          color: '#FFFFFF',
-          minHeight: '40px',
+          color: '#F9FAFB',
+          minHeight: '34px',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
-          lineHeight: 1.35
+          lineHeight: 1.28,
+          marginBottom: '0.35rem'
         }}>
           {product.name}
         </h4>
 
         {/* Pricing */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem', marginTop: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.45rem', marginTop: '0.2rem' }}>
           <span style={{
-            fontSize: '1.2rem',
+            fontSize: '1.05rem',
             fontWeight: 800,
             fontFamily: "'Space Grotesk', sans-serif",
             color: '#FFFFFF'
           }}>
-            ₹{currentPrice.toLocaleString('en-IN')}
+            ₹{Number(currentPrice).toLocaleString('en-IN')}
           </span>
           {discountPercent > 0 && (
             <span style={{
-              fontSize: '0.85rem',
+              fontSize: '0.75rem',
               color: 'var(--color-text-muted)',
               textDecoration: 'line-through'
             }}>
@@ -203,10 +199,10 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
 
-      {/* Size Pills & Quick Add Action */}
-      <div style={{ marginTop: '0.85rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+      {/* Size Selector & Quick Add */}
+      <div style={{ marginTop: '0.65rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.55rem' }}>
         {product.variants && product.variants.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.4rem', scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.35rem', scrollbarWidth: 'none' }}>
             {product.variants.map((v) => (
               <button
                 key={v.id}
@@ -217,15 +213,15 @@ const ProductCard = ({ product }) => {
                 }}
                 disabled={v.stock <= 0}
                 style={{
-                  fontSize: '0.7rem',
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '6px',
-                  background: selectedSize === v.size ? 'var(--color-primary)' : 'var(--color-surface)',
+                  fontSize: '0.65rem',
+                  padding: '0.18rem 0.42rem',
+                  borderRadius: '5px',
+                  background: selectedSize === v.size ? 'var(--color-primary)' : 'rgba(255,255,255,0.04)',
                   color: selectedSize === v.size ? '#000000' : (v.stock <= 0 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'),
-                  border: `1px solid ${selectedSize === v.size ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  border: `1px solid ${selectedSize === v.size ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)'}`,
                   fontWeight: selectedSize === v.size ? 800 : 500,
                   cursor: v.stock <= 0 ? 'not-allowed' : 'pointer',
-                  opacity: v.stock <= 0 ? 0.35 : 1,
+                  opacity: v.stock <= 0 ? 0.3 : 1,
                   whiteSpace: 'nowrap'
                 }}
               >
@@ -240,14 +236,18 @@ const ProductCard = ({ product }) => {
           className="btn btn-secondary"
           style={{
             width: '100%',
-            marginTop: '0.4rem',
-            padding: '0.55rem',
-            fontSize: '0.85rem',
-            borderRadius: 'var(--radius-md)',
-            fontWeight: 700
+            marginTop: '0.3rem',
+            padding: '0.45rem',
+            fontSize: '0.78rem',
+            borderRadius: 'var(--radius-sm)',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.35rem'
           }}
         >
-          <ShoppingBag size={15} />
+          <ShoppingBag size={14} />
           Add ({selectedSize})
         </button>
       </div>

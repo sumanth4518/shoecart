@@ -38,6 +38,35 @@ def add_address(payload: AddressCreate, current_user: User = Depends(get_current
     db.refresh(new_address)
     return new_address
 
+@router.put("/{address_id}", response_model=AddressOut)
+def update_address(
+    address_id: int,
+    payload: AddressCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Updates an existing delivery address for customer."""
+    addr = db.query(Address).filter(Address.id == address_id, Address.user_id == current_user.id).first()
+    if not addr:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+    if payload.is_default:
+        db.query(Address).filter(Address.user_id == current_user.id).update({"is_default": False})
+
+    addr.recipient_name = payload.recipient_name
+    addr.phone_number = payload.phone_number
+    addr.street_address = payload.street_address
+    addr.apartment_suite = payload.apartment_suite
+    addr.city = payload.city
+    addr.state = payload.state
+    addr.postal_code = payload.postal_code
+    addr.country = payload.country
+    addr.is_default = payload.is_default
+
+    db.commit()
+    db.refresh(addr)
+    return addr
+
 @router.delete("/{address_id}")
 def delete_address(address_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Deletes an address owned by customer."""

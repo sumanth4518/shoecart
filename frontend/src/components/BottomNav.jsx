@@ -38,7 +38,7 @@ const BottomNav = () => {
           left: 0,
           right: 0,
           height: '62px',
-          backgroundColor: 'rgba(15, 15, 15, 0.95)',
+          backgroundColor: 'rgba(8, 10, 15, 0.96)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid var(--color-border)',

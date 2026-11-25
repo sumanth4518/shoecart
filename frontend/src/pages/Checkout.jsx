@@ -11,7 +11,8 @@ import {
   ShieldCheck, 
   ArrowRight,
   Plus,
-  CreditCard
+  CreditCard,
+  Edit3
 } from 'lucide-react';
 import { fetchCart } from '../store/cartSlice';
 
@@ -23,12 +24,13 @@ const Checkout = () => {
   const { user } = useSelector((state) => state.auth);
 
   const [step, setStep] = useState(1); // 1: Delivery Details, 2: Review, 3: Confirmed
-  const [address, setAddress] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || '');
-  const [recipientName, setRecipientName] = useState(user?.name || '');
+  const [address, setAddress] = useState(localStorage.getItem('aura_default_address') || '');
+  const [phoneNumber, setPhoneNumber] = useState(localStorage.getItem('aura_default_phone') || user?.phone_number || '');
+  const [recipientName, setRecipientName] = useState(localStorage.getItem('aura_default_recipient') || user?.name || '');
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
 
@@ -52,12 +54,28 @@ const Checkout = () => {
       if (data.length > 0) {
         const defaultAddr = data.find(a => a.is_default) || data[0];
         setSelectedAddressId(defaultAddr.id);
-        setAddress(`${defaultAddr.street_address}, ${defaultAddr.city}, ${defaultAddr.state} - ${defaultAddr.postal_code}`);
+        const formatted = `${defaultAddr.street_address}, ${defaultAddr.city}, ${defaultAddr.state} - ${defaultAddr.postal_code}`;
+        setAddress(formatted);
         setRecipientName(defaultAddr.recipient_name);
         setPhoneNumber(defaultAddr.phone_number);
+        setIsEditingAddress(false);
+      } else {
+        const cachedAddr = localStorage.getItem('aura_default_address');
+        if (cachedAddr) {
+          setAddress(cachedAddr);
+          setIsEditingAddress(false);
+        } else {
+          setIsEditingAddress(true);
+        }
       }
     } catch (e) {
-      // Ignore
+      const cachedAddr = localStorage.getItem('aura_default_address');
+      if (cachedAddr) {
+        setAddress(cachedAddr);
+        setIsEditingAddress(false);
+      } else {
+        setIsEditingAddress(true);
+      }
     }
   };
 
@@ -76,6 +94,11 @@ const Checkout = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const formattedAddress = `${recipientName} | ${phoneNumber} | ${address}`;
+
+      // Cache address & contact info for seamless zero-prompt future checkouts
+      if (phoneNumber) localStorage.setItem('aura_default_phone', phoneNumber);
+      if (recipientName) localStorage.setItem('aura_default_recipient', recipientName);
+      if (address) localStorage.setItem('aura_default_address', address);
 
       // STRIPE CHECKOUT FLOW
       if (paymentMethod === 'stripe') {
@@ -207,49 +230,138 @@ const Checkout = () => {
 
           <form onSubmit={handlePlaceOrder}>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
-                  Recipient Full Name
-                </label>
-                <input
-                  type="text"
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  placeholder="e.g. Rahul Sharma"
-                  className="input-control"
-                  required
-                />
-              </div>
+            {/* If an address exists and user is not actively editing, show default delivery destination card */}
+            {!isEditingAddress && address.trim() ? (
+              <div style={{
+                backgroundColor: 'rgba(255, 107, 26, 0.06)',
+                border: '1px solid rgba(255, 107, 26, 0.35)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.25rem',
+                marginBottom: '1.5rem',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className="badge badge-orange" style={{ fontSize: '0.68rem', padding: '0.2rem 0.55rem' }}>
+                      DEFAULT SHIPPING DESTINATION
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingAddress(true)}
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem', gap: '0.35rem' }}
+                  >
+                    <Edit3 size={14} /> Edit Address
+                  </button>
+                </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
-                  Contact Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="e.g. +91 98765 43210"
-                  className="input-control"
-                  required
-                />
+                <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: '0 0 0.35rem 0' }}>
+                  {recipientName || user?.name}
+                </h4>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', lineHeight: 1.5, margin: '0 0 0.5rem 0' }}>
+                  {address}
+                </p>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', margin: 0 }}>
+                  Contact: <strong style={{ color: '#fff' }}>{phoneNumber || "N/A"}</strong>
+                </p>
               </div>
-            </div>
+            ) : (
+              <div style={{ marginBottom: '1.5rem' }}>
+                {savedAddresses.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.4rem' }}>
+                      Select from Saved Addresses:
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.4rem' }}>
+                      {savedAddresses.map((sa) => (
+                        <button
+                          key={sa.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedAddressId(sa.id);
+                            setRecipientName(sa.recipient_name);
+                            setPhoneNumber(sa.phone_number);
+                            setAddress(`${sa.street_address}, ${sa.city}, ${sa.state} - ${sa.postal_code}`);
+                            setIsEditingAddress(false);
+                          }}
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '8px',
+                            fontSize: '0.8rem',
+                            background: selectedAddressId === sa.id ? 'var(--color-primary)' : 'var(--color-surface)',
+                            color: selectedAddressId === sa.id ? '#000' : 'var(--color-text-secondary)',
+                            border: `1px solid ${selectedAddressId === sa.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            fontWeight: selectedAddressId === sa.id ? 800 : 500,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {sa.recipient_name} ({sa.city})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
-                Complete Shipping Address
-              </label>
-              <textarea
-                rows={3}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Flat / Building, Street, Landmark, City, State, PIN Code"
-                className="input-control"
-                required
-              />
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
+                      Recipient Full Name
+                    </label>
+                    <input
+                      type="text"
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="input-control"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
+                      Contact Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="e.g. +91 98765 43210"
+                      className="input-control"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
+                    Complete Shipping Address
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Flat / Building, Street, Landmark, City, State, PIN Code"
+                    className="input-control"
+                    required
+                  />
+                </div>
+
+                {address.trim() && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAddress(false)}
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.82rem', padding: '0.4rem 0.9rem' }}
+                    >
+                      Save & Use This Address
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Payment Method Selector */}
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>

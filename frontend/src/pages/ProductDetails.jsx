@@ -40,11 +40,9 @@ const ProductDetails = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      toast.info('Please sign in to view silhouette details');
-      navigate('/login');
-      return;
-    }
+    // Instantly reset scroll position to top when product opens
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
     dispatch(getProduct(id));
     dispatch(getProducts());
     fetchReviews();
@@ -52,7 +50,7 @@ const ProductDetails = () => {
     return () => {
       dispatch(clearProduct());
     };
-  }, [id, user, dispatch, navigate]);
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (product?.variants && product.variants.length > 0) {
@@ -607,6 +605,27 @@ const ProductDetails = () => {
           </div>
         </section>
       )}
+
+      {/* Mobile Sticky Purchase Bar */}
+      <div className="mobile-sticky-action-bar">
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase' }}>
+            {selectedVariant ? `Size: ${selectedVariant.size}` : 'Select Size'}
+          </span>
+          <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', fontFamily: "'Space Grotesk', sans-serif" }}>
+            ₹{(currentPrice * quantity).toLocaleString('en-IN')}
+          </span>
+        </div>
+        <button
+          onClick={handleAddToCart}
+          disabled={availableStock <= 0}
+          className="btn btn-primary"
+          style={{ padding: '0.65rem 1.4rem', fontSize: '0.88rem', borderRadius: 'var(--radius-md)' }}
+        >
+          <ShoppingBag size={16} />
+          {availableStock <= 0 ? 'Out of Stock' : 'Add to Bag'}
+        </button>
+      </div>
 
       {/* Share Modal */}
       {isShareModalOpen && (

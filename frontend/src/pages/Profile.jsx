@@ -17,9 +17,11 @@ import {
   Phone,
   Mail,
   UserCheck,
-  Sparkles
+  Sparkles,
+  Edit3,
+  Check
 } from 'lucide-react';
-import { logout, reset } from '../store/authSlice';
+import { logout, reset, updateUserState } from '../store/authSlice';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -38,6 +40,12 @@ const Profile = () => {
     is_default: false
   });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+
+  // Profile Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profilePhone, setProfilePhone] = useState(user?.phone_number || '');
 
   useEffect(() => {
     if (!user) {
@@ -57,17 +65,64 @@ const Profile = () => {
     }
   };
 
-  const handleAddAddress = async (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post('/api/addresses', newAddress, config);
-      toast.success('Address saved successfully');
+      const { data } = await axios.put('/api/auth/me', {
+        name: profileName,
+        phone_number: profilePhone
+      }, config);
+      dispatch(updateUserState({ name: data.name, phone_number: data.phone_number }));
+      toast.success('Profile details updated successfully!');
+      setIsEditingProfile(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update profile');
+    }
+  };
+
+  const startEditAddress = (addr) => {
+    setEditingAddressId(addr.id);
+    setNewAddress({
+      recipient_name: addr.recipient_name,
+      phone_number: addr.phone_number,
+      street_address: addr.street_address,
+      city: addr.city,
+      state: addr.state,
+      postal_code: addr.postal_code,
+      is_default: addr.is_default
+    });
+    setShowAddForm(true);
+  };
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      if (editingAddressId) {
+        await axios.put(`/api/addresses/${editingAddressId}`, newAddress, config);
+        toast.success('Address updated successfully');
+      } else {
+        await axios.post('/api/addresses', newAddress, config);
+        toast.success('Address saved successfully');
+      }
       setShowAddForm(false);
+      setEditingAddressId(null);
       setNewAddress({ recipient_name: '', phone_number: '', street_address: '', city: '', state: '', postal_code: '', is_default: false });
       fetchAddresses();
     } catch (error) {
       toast.error('Failed to save address');
+    }
+  };
+
+  const handleSetDefaultAddress = async (id) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.put(`/api/addresses/${id}/default`, {}, config);
+      toast.success('Default delivery address updated');
+      fetchAddresses();
+    } catch (e) {
+      toast.error('Failed to set default address');
     }
   };
 
@@ -239,34 +294,99 @@ const Profile = () => {
                     Manage your account credentials and personal preferences.
                   </p>
                 </div>
-                <span className="badge badge-orange">
-                  <ShieldCheck size={14} /> Verified Member
-                </span>
-              </div>
-
-              <div className="profile-details-grid">
-                <div className="profile-detail-box">
-                  <span className="profile-detail-label">Full Name</span>
-                  <p className="profile-detail-value">{user.name}</p>
-                </div>
-
-                <div className="profile-detail-box">
-                  <span className="profile-detail-label">Email Address</span>
-                  <p className="profile-detail-value">{user.email}</p>
-                </div>
-
-                <div className="profile-detail-box">
-                  <span className="profile-detail-label">Contact Phone</span>
-                  <p className="profile-detail-value">{user.phone_number || "Not specified"}</p>
-                </div>
-
-                <div className="profile-detail-box">
-                  <span className="profile-detail-label">Account Role</span>
-                  <p className="profile-detail-value" style={{ color: 'var(--color-primary)', textTransform: 'capitalize' }}>
-                    {user.role}
-                  </p>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setProfileName(user?.name || '');
+                      setProfilePhone(user?.phone_number || '');
+                      setIsEditingProfile(!isEditingProfile);
+                    }}
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.82rem', padding: '0.45rem 0.9rem', gap: '0.35rem' }}
+                  >
+                    <Edit3 size={15} />
+                    {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+                  </button>
+                  <span className="badge badge-orange">
+                    <ShieldCheck size={14} /> Verified Member
+                  </span>
                 </div>
               </div>
+
+              {isEditingProfile ? (
+                <form onSubmit={handleUpdateProfile} style={{ background: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '1rem', fontWeight: 700 }}>
+                    Update Profile Details
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.35rem', textTransform: 'uppercase' }}>
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="input-control"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.35rem', textTransform: 'uppercase' }}>
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={profilePhone}
+                        onChange={(e) => setProfilePhone(e.target.value)}
+                        placeholder="e.g. +91 98765 43210"
+                        className="input-control"
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingProfile(false)}
+                      className="btn btn-outline"
+                      style={{ padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ padding: '0.5rem 1.35rem', fontSize: '0.85rem' }}
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="profile-details-grid">
+                  <div className="profile-detail-box">
+                    <span className="profile-detail-label">Full Name</span>
+                    <p className="profile-detail-value">{user.name}</p>
+                  </div>
+
+                  <div className="profile-detail-box">
+                    <span className="profile-detail-label">Email Address</span>
+                    <p className="profile-detail-value">{user.email}</p>
+                  </div>
+
+                  <div className="profile-detail-box">
+                    <span className="profile-detail-label">Contact Phone</span>
+                    <p className="profile-detail-value">{user.phone_number || "Not specified"}</p>
+                  </div>
+
+                  <div className="profile-detail-box">
+                    <span className="profile-detail-label">Account Role</span>
+                    <p className="profile-detail-value" style={{ color: 'var(--color-primary)', textTransform: 'capitalize' }}>
+                      {user.role}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div style={{
                 background: 'var(--color-surface)',
@@ -307,7 +427,11 @@ const Profile = () => {
                   </p>
                 </div>
                 <button 
-                  onClick={() => setShowAddForm(!showAddForm)} 
+                  onClick={() => {
+                    setEditingAddressId(null);
+                    setNewAddress({ recipient_name: '', phone_number: '', street_address: '', city: '', state: '', postal_code: '', is_default: false });
+                    setShowAddForm(!showAddForm);
+                  }} 
                   className="btn btn-primary" 
                   style={{ fontSize: '0.85rem', padding: '0.55rem 1.1rem' }}
                 >
@@ -315,11 +439,11 @@ const Profile = () => {
                 </button>
               </div>
 
-              {/* Add Address Form */}
+              {/* Add / Edit Address Form */}
               {showAddForm && (
-                <form onSubmit={handleAddAddress} className="address-form-box">
+                <form onSubmit={handleSaveAddress} className="address-form-box">
                   <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '1.25rem', fontWeight: 700 }}>
-                    New Delivery Address
+                    {editingAddressId ? 'Edit Delivery Address' : 'New Delivery Address'}
                   </h3>
                   
                   <div className="address-form-grid-2">
@@ -407,13 +531,26 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary" 
-                    style={{ width: '100%', padding: '0.85rem', fontWeight: 700, fontSize: '0.95rem' }}
-                  >
-                    Save Delivery Address
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setEditingAddressId(null);
+                      }}
+                      className="btn btn-outline"
+                      style={{ padding: '0.65rem 1.25rem', fontSize: '0.88rem' }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary" 
+                      style={{ padding: '0.65rem 1.5rem', fontWeight: 700, fontSize: '0.9rem' }}
+                    >
+                      {editingAddressId ? 'Update Address' : 'Save Delivery Address'}
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -440,28 +577,64 @@ const Profile = () => {
               ) : (
                 <div className="profile-addresses-grid">
                   {addresses.map((a) => (
-                    <div key={a.id} className="profile-address-card">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <div key={a.id} className="profile-address-card" style={{ position: 'relative' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                           <MapPin size={16} color="var(--color-primary)" />
                           <h4 style={{ color: '#fff', fontSize: '0.98rem', fontWeight: 700 }}>
                             {a.recipient_name}
                           </h4>
+                          {a.is_default && (
+                            <span className="badge badge-orange" style={{ fontSize: '0.65rem', padding: '0.15rem 0.45rem' }}>
+                              DEFAULT
+                            </span>
+                          )}
                         </div>
-                        <button 
-                          onClick={() => handleDeleteAddress(a.id)} 
-                          className="profile-delete-address-btn"
-                          title="Delete address"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <button
+                            onClick={() => startEditAddress(a)}
+                            className="profile-delete-address-btn"
+                            title="Edit Address"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteAddress(a.id)} 
+                            className="profile-delete-address-btn"
+                            title="Delete address"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </div>
                       <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.55 }}>
                         {a.street_address}, {a.city}, {a.state} &bull; {a.postal_code}
                       </p>
-                      <div style={{ marginTop: '0.65rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-                        <Phone size={13} />
-                        <span>{a.phone_number}</span>
+                      <div style={{ marginTop: '0.65rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                          <Phone size={13} />
+                          <span>{a.phone_number}</span>
+                        </div>
+                        {!a.is_default && (
+                          <button
+                            onClick={() => handleSetDefaultAddress(a.id)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--color-primary)',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              padding: '0.2rem 0.4rem'
+                            }}
+                          >
+                            <Check size={13} /> Set Default
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
